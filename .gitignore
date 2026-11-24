@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# local input data and spreadsheets, kept out of the repo
+data/
+*.xlsx
