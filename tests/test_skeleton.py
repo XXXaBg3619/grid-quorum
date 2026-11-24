@@ -21,7 +21,7 @@ from gridq.verifier import REJECT_REASONS  # noqa: E402
 class TestSkeleton(unittest.TestCase):
     def test_all_modules_import(self):
         for m in ("gridq", "gridq.sim", "gridq.power", "gridq.loads", "gridq.policy", "gridq.verifier",
-                  "gridq.run", "gridq.consensus", "gridq.arch", "gridq.faults", "gridq.svgchart"):
+                  "gridq.lasthop", "gridq.run", "gridq.consensus", "gridq.arch", "gridq.faults", "gridq.svgchart"):
             importlib.import_module(m)
 
     def test_four_architectures(self):

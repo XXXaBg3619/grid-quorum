@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from gridq.config import GridConfig  # noqa: E402
-from gridq.metrics import jain, mean_ci95, paired_diff  # noqa: E402
+from gridq.metrics import jain, mean_ci95, paired_diff, state_deviation_s  # noqa: E402
 from gridq.theory import commit_latency_bound, round_outcome, round_success_prob  # noqa: E402
 
 
@@ -31,6 +31,13 @@ class TestMetrics(unittest.TestCase):
         d = paired_diff(faulty, honest, ["bad_accept_rate", "availability"], higher_is_better=["availability"])
         self.assertAlmostEqual(d["bad_accept_rate"], 0.1)
         self.assertAlmostEqual(d["availability"], 0.09)
+
+    def test_state_deviation_counts_both_sides(self):
+        ref = {("S1", "S1-F1"): [(0.0, "on"), (100.0, "off"), (200.0, "on")]}
+        act = {("S1", "S1-F1"): [(0.0, "on"), (150.0, "off"), (260.0, "on")]}
+        self.assertEqual(state_deviation_s(act, ref, 300.0), {"unsafe_on": 50.0, "wrong_off": 60.0})
+        self.assertEqual(state_deviation_s({}, ref, 300.0), {"unsafe_on": 100.0, "wrong_off": 0.0})
+        self.assertEqual(state_deviation_s(ref, ref, 300.0), {"unsafe_on": 0.0, "wrong_off": 0.0})
 
 
 class TestRoundSuccess(unittest.TestCase):

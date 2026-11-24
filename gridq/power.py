@@ -16,9 +16,10 @@ they do today.
                  simplified under-frequency load shedding (UFLS) trips the
                  lowest-priority feeders; if that is not enough, the island
                  collapses
-  state version  a counter bumped on every switching action and bound into
-                 each command, so a command computed for an older state is
-                 rejected (verifier.py)
+  state version  kept by each substation's verifier (verifier.py), +1 for
+                 every executed command; local protective actions (UFLS trips)
+                 must bump it too, so a command computed before a trip is
+                 rejected
 
 Metrics read from the log: critical-load hours, UFLS trips, island collapses.
 """

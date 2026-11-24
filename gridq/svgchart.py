@@ -10,6 +10,10 @@ Text wears ink tokens, never series colors. Every marker has a native <title>
 tooltip on a hit target larger than the mark, and the CSV written next to each
 chart is its table view.
 
+matrix(...) draws a heat table (one row per item, one column per condition,
+the cell shade a share in [0, 1] on the sequential blue ramp, exact zero in
+neutral gray), with optional plain text columns; experiment 4 uses it.
+
 chart(panels, ...) draws one or more panels side by side with shared axes:
   panel = {"title": str,
            "series": [{"label", "slot", "points": [(x, y, tip)], "band": [(x, lo, hi)] | None,
@@ -239,5 +243,108 @@ def chart(panels: List[dict], *, title: str, subtitle: str = "", legend: Sequenc
     if y_label:
         out.append(f'<text class="t2" transform="translate(16 {mt + plot_h / 2:.1f}) rotate(-90)" '
                    f'text-anchor="middle">{escape(y_label)}</text>')
+    out.append("</svg>")
+    return "\n".join(out)
+
+
+# ---------- heat table ----------
+# Sequential blue (dataviz reference ramp): light mode light -> dark, dark mode dark -> light, so
+# "more" always stands out from the surface; exactly zero is the neutral gray ("none").
+HEAT = {"light": ("#f0efec", "#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"),
+        "dark": ("#2c2c2a", "#104281", "#184f95", "#256abf", "#3987e5", "#6da7ec", "#9ec5f4")}
+HEAT_INK = {"light": ("ink",) * 5 + ("surface",) * 2, "dark": ("ink",) * 4 + ("surface",) * 3}
+
+
+def heat_bucket(v: float) -> int:
+    """0 for exactly zero (or less), else 1..6 for (0, 1/6], ..., (5/6, 1]."""
+    return 0 if v <= 0 else min(6, 1 + int(v * 6 - 1e-9))
+
+
+def _heat_style() -> str:
+    def tokens(mode: str) -> str:
+        return ("".join(f"--h{i}:{c};" for i, c in enumerate(HEAT[mode]))
+                + "".join(f"--hv{i}:var(--{k});" for i, k in enumerate(HEAT_INK[mode])))
+    cls = "".join(f".h{i}{{fill:var(--h{i})}}.hv{i}{{fill:var(--hv{i})}}" for i in range(7))
+    return ("<style>"
+            f"svg.viz{{{tokens('light')}}}"
+            f"@media (prefers-color-scheme: dark){{svg.viz{{{tokens('dark')}}}}}"
+            f"{cls}.cell{{stroke:var(--surface);stroke-width:2}}.cell:hover{{stroke:var(--ink)}}"
+            ".cv{pointer-events:none;font-weight:600}.sw{stroke:var(--surface);stroke-width:2}"
+            "</style>")
+
+
+def matrix(row_labels: Sequence[str], col_labels: Sequence[str], values: Sequence[Sequence[float]], *,
+           title: str, subtitle: str = "", heat_header: str = "",
+           tips: Optional[Sequence[Sequence[str]]] = None,
+           text_cols: Sequence[Tuple[str, Sequence[str]]] = (), breaks: Sequence[int] = (),
+           value_fmt: Callable[[float], str] = lambda v: f"{v * 100:.0f}%",
+           legend_label: str = "", desc: str = "") -> str:
+    """Return an SVG heat table.
+
+    values[i][j] in [0, 1] for row i, column j, or None for a cell with nothing
+    to measure (drawn as a dash on the empty colour); tips: tooltip per cell
+    (default row, column and value). Headers may hold line breaks. text_cols: (header,
+    one string per row), drawn after the heat columns in plain ink. breaks: a
+    gap is left after these row indices."""
+    n_r, n_c = len(row_labels), len(col_labels)
+    sub_lines = subtitle.split("\n") if subtitle else []
+    heads = [c.split("\n") for c in col_labels] + [h.split("\n") for h, _ in text_cols]
+    head_lines = max([len(h) for h in heads] + [1])
+    label_w = int(max(text_width(r) for r in row_labels)) + 28
+    cell_w = int(max([96] + [text_width(x) + 20 for c in col_labels for x in c.split("\n")]))
+    text_ws = [int(max([text_width(x) for x in h.split("\n")] + [text_width(v) for v in vals])) + 28
+               for h, vals in text_cols]
+    cell_h, ml, mr = 30, 16, 16
+    y_head = 62 + 18 * max(0, len(sub_lines) - 1) + (20 if heat_header else 0)
+    y0 = y_head + 18 * head_lines + 6
+    gaps = [10 * sum(1 for b in breaks if b < i) for i in range(n_r)]
+    y_end = y0 + n_r * cell_h + (gaps[-1] if gaps else 0)
+    x_heat = ml + label_w
+    width = x_heat + n_c * cell_w + sum(text_ws) + mr
+    height = y_end + 58
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 {width} {height}" '
+           f'width="{width}" height="{height}" role="img" aria-labelledby="t d">',
+           _style(), _heat_style(),
+           f'<title id="t">{escape(title)}</title><desc id="d">{escape(desc or subtitle)}</desc>',
+           f'<rect class="bg" width="{width}" height="{height}"/>',
+           f'<text class="t1 title" x="{ml}" y="26">{escape(title)}</text>']
+    for j, line in enumerate(sub_lines):
+        out.append(f'<text class="t2" x="{ml}" y="{46 + 18 * j}">{escape(line)}</text>')
+    if heat_header:
+        out.append(f'<text class="t1 ptitle" x="{x_heat + n_c * cell_w / 2:.1f}" y="{y_head - 6}" '
+                   f'text-anchor="middle">{escape(heat_header)}</text>')
+        out.append(f'<line class="axis" x1="{x_heat + 4}" x2="{x_heat + n_c * cell_w - 4}" '
+                   f'y1="{y_head - 1}" y2="{y_head - 1}"/>')
+    xs = [x_heat + j * cell_w + cell_w / 2 for j in range(n_c)]
+    x_text, tx = [], x_heat + n_c * cell_w
+    for w in text_ws:
+        x_text.append(tx + 16)
+        tx += w
+    for k, lines in enumerate(heads):
+        x, anchor = (xs[k], "middle") if k < n_c else (x_text[k - n_c], "start")
+        for m, line in enumerate(lines):
+            out.append(f'<text class="t2" x="{x:.1f}" y="{y_head + 14 + 18 * m}" text-anchor="{anchor}">'
+                       f'{escape(line)}</text>')
+    for i, row in enumerate(row_labels):
+        y = y0 + i * cell_h + gaps[i]
+        out.append(f'<text class="t1" x="{ml}" y="{y + cell_h / 2 + 4:.1f}">{escape(row)}</text>')
+        for j in range(n_c):
+            v = values[i][j]
+            b, shown = (0, "—") if v is None else (heat_bucket(v), value_fmt(v))
+            tip = tips[i][j] if tips else f"{row}，{col_labels[j].replace(chr(10), '')}：{shown}"
+            out.append(f'<rect class="cell h{b}" x="{x_heat + j * cell_w:.1f}" y="{y:.1f}" width="{cell_w}" '
+                       f'height="{cell_h}" rx="4"><title>{escape(tip)}</title></rect>'
+                       f'<text class="cv hv{b}" x="{xs[j]:.1f}" y="{y + cell_h / 2 + 4:.1f}" '
+                       f'text-anchor="middle">{escape(shown)}</text>')
+        for k, (_, vals) in enumerate(text_cols):
+            out.append(f'<text class="t2" x="{x_text[k]:.1f}" y="{y + cell_h / 2 + 4:.1f}">{escape(vals[i])}</text>')
+    ly = y_end + 24
+    sw = 22
+    out.append(f'<text class="tm small" x="{x_heat}" y="{ly + 4}" text-anchor="end" dx="-8">0%</text>')
+    for b in range(7):
+        out.append(f'<rect class="sw h{b}" x="{x_heat + b * sw}" y="{ly - 8}" width="{sw}" height="16" rx="3"/>')
+    out.append(f'<text class="tm small" x="{x_heat + 7 * sw + 8}" y="{ly + 4}">100%</text>')
+    if legend_label:
+        out.append(f'<text class="t2 small" x="{x_heat + 7 * sw + 48}" y="{ly + 4}">{escape(legend_label)}</text>')
     out.append("</svg>")
     return "\n".join(out)

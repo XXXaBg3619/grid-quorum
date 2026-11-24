@@ -44,6 +44,12 @@ class TestHeaderChain(unittest.TestCase):
         self.assertEqual(verify_chain(forged, honest)["reason"], "differs from replica")
         self.assertEqual(verify_chain(forged, None, {4: honest[3]["hash"]})["reason"], "checkpoint mismatch")
 
+    def test_segment_from_a_trusted_header(self):
+        chain = build_chain()
+        self.assertTrue(verify_chain(chain[3:], prev=chain[2]["hash"])["ok"])
+        self.assertEqual(verify_chain(chain[3:])["height"], 4)                 # does not start at genesis
+        self.assertFalse(verify_chain(chain[3:], prev=chain[1]["hash"])["ok"])
+
     def test_length_mismatch(self):
         chain = build_chain()
         self.assertEqual(verify_chain(chain, chain[:-1])["reason"], "length differs from replica")

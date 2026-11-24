@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from gridq.svgchart import chart, linear_ticks, log_ticks  # noqa: E402
+from gridq.svgchart import chart, heat_bucket, linear_ticks, log_ticks, matrix  # noqa: E402
 
 
 class TestSvgChart(unittest.TestCase):
@@ -25,6 +25,20 @@ class TestSvgChart(unittest.TestCase):
         self.assertIn("t<0>", tips)                                     # escaped, then parsed back
         self.assertIn("prefers-color-scheme: dark", svg)
         self.assertNotIn("nan", svg.lower().replace("nanum", ""))
+
+    def test_heat_table(self):
+        self.assertEqual([heat_bucket(v) for v in (0.0, 0.001, 1 / 6, 0.5, 1.0)], [0, 1, 1, 3, 6])
+        svg = matrix(["a", "b"], ["x", "y\nz"], [[0.0, 1.0], [0.5, None]], title="M", subtitle="s1\ns2",
+                     tips=[["t<1>", "t2"], ["t3", "t4"]], text_cols=[("note", ["n1", "n2"])], breaks=[0],
+                     heat_header="share", legend_label="share")
+        root = ET.fromstring(svg)
+        ns = "{http://www.w3.org/2000/svg}"
+        cells = [e for e in root.iter(ns + "rect") if "cell" in e.get("class", "").split()]
+        self.assertEqual([c.get("class") for c in cells], ["cell h0", "cell h6", "cell h3", "cell h0"])
+        shown = [e.text for e in root.iter(ns + "text") if (e.get("class") or "").startswith("cv")]
+        self.assertEqual(shown, ["0%", "100%", "50%", "—"])                 # nothing to measure is not 0%
+        self.assertIn("t<1>", [e.text for e in root.iter(ns + "title")])
+        self.assertIn("prefers-color-scheme: dark", svg)
 
 
 if __name__ == "__main__":

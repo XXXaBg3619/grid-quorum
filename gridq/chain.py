@@ -12,6 +12,10 @@ hash. verify_chain() makes three checks and reports the first failure:
   3. checkpoints  every trusted hash (e.g. headers a substation already
                   accepted) equals the chain's hash at that height.
 
+A light node keeps only the last header it trusts, so the chain it checks may
+start later than genesis: pass that header's hash as `prev` (the substation
+verifier checks each new block this way, verifier.py).
+
 evsim's version had the allocation fields hard-coded; here the body is any
 dict with a "height" key, so the block format can still change.
 """
@@ -40,9 +44,10 @@ def append(chain: List[dict], body: dict) -> dict:
 
 
 def verify_chain(chain: List[dict], replica: Optional[List[dict]] = None,
-                 checkpoints: Optional[Dict[int, str]] = None) -> dict:
-    """Return {"ok", "reason", "height"} for the first problem found, or ok."""
-    prev = GENESIS
+                 checkpoints: Optional[Dict[int, str]] = None, prev: str = GENESIS) -> dict:
+    """Return {"ok", "reason", "height"} for the first problem found, or ok.
+
+    prev: the hash the first entry must link to (genesis, or a trusted header)."""
     for e in chain:
         body = {k: v for k, v in e.items() if k != "hash"}
         if e.get("prev") != prev or canonical_hash(body) != e.get("hash"):
