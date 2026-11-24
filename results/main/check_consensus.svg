@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 724 402" width="724" height="402" role="img" aria-labelledby="t d">
+<style>svg.viz{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;font-family:system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif}@media (prefers-color-scheme: dark){svg.viz{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;}}.bg{fill:var(--surface)}.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1}.ref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;fill:none}.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dash{stroke-dasharray:6 4}.mk{stroke:var(--surface);stroke-width:2}.hollow{fill:var(--surface);stroke-width:2}.hit{fill:transparent;pointer-events:all}.hit:hover+.mk,.mk:hover{stroke:var(--ink)}.l1{stroke:var(--s1)}.f1{fill:var(--s1)}.b1{fill:var(--s1);fill-opacity:.14}.l2{stroke:var(--s2)}.f2{fill:var(--s2)}.b2{fill:var(--s2);fill-opacity:.14}.l3{stroke:var(--s3)}.f3{fill:var(--s3)}.b3{fill:var(--s3);fill-opacity:.14}.l4{stroke:var(--s4)}.f4{fill:var(--s4)}.b4{fill:var(--s4);fill-opacity:.14}text{font-size:12px}.title{font-size:15px;font-weight:600}.ptitle{font-size:13px;font-weight:600}.small{font-size:11px}</style>
+<title id="t">第 0 輪就提交的高度比例：逐節點共識 vs 理論</title><desc id="d">逐節點共識在 iid 訊息遺失下第 0 輪的提交比例，與 theory.round_success_prob 比較</desc>
+<rect class="bg" x="0" y="0" width="724" height="402" rx="8"/>
+<text class="t1 title" x="72" y="26">第 0 輪就提交的高度比例：逐節點共識 vs 理論</text>
+<text class="t2" x="72" y="46">誠實驗證者，每則訊息各自以機率 p 遺失、不重送；每點約 2000 個高度，帶狀為 95% 信賴區間</text>
+<path class="line l1" d="M72,73 h22"/><circle class="mk f1" cx="83" cy="73" r="4"/>
+<text class="t2" x="100" y="77">模擬 n = 4（Q = 3）</text>
+<path class="line l2" d="M246.55999999999997,73 h22"/><circle class="mk f2" cx="257.55999999999995" cy="73" r="4"/>
+<text class="t2" x="274.55999999999995" y="77">模擬 n = 7（Q = 5）</text>
+<path class="ref" d="M421.11999999999995,73 h22"/>
+<text class="t2" x="449.11999999999995" y="77">理論值 round_success_prob</text>
+<text class="t1 ptitle" x="72.0" y="80"></text>
+<line class="grid" x1="72.0" x2="632.0" y1="352.0" y2="352.0"/>
+<text class="tm" x="64.0" y="356.0" text-anchor="end">0%</text>
+<line class="grid" x1="72.0" x2="632.0" y1="300.0" y2="300.0"/>
+<text class="tm" x="64.0" y="304.0" text-anchor="end">20%</text>
+<line class="grid" x1="72.0" x2="632.0" y1="248.0" y2="248.0"/>
+<text class="tm" x="64.0" y="252.0" text-anchor="end">40%</text>
+<line class="grid" x1="72.0" x2="632.0" y1="196.0" y2="196.0"/>
+<text class="tm" x="64.0" y="200.0" text-anchor="end">60%</text>
+<line class="grid" x1="72.0" x2="632.0" y1="144.0" y2="144.0"/>
+<text class="tm" x="64.0" y="148.0" text-anchor="end">80%</text>
+<line class="grid" x1="72.0" x2="632.0" y1="92.0" y2="92.0"/>
+<text class="tm" x="64.0" y="96.0" text-anchor="end">100%</text>
+<line class="axis" x1="72.0" x2="632.0" y1="352" y2="352"/>
+<line class="axis" x1="72.0" x2="72.0" y1="352" y2="356"/><text class="tm" x="72.0" y="370" text-anchor="middle">0%</text>
+<line class="axis" x1="165.3" x2="165.3" y1="352" y2="356"/><text class="tm" x="165.3" y="370" text-anchor="middle">5%</text>
+<line class="axis" x1="352.0" x2="352.0" y1="352" y2="356"/><text class="tm" x="352.0" y="370" text-anchor="middle">15%</text>
+<line class="axis" x1="538.7" x2="538.7" y1="352" y2="356"/><text class="tm" x="538.7" y="370" text-anchor="middle">25%</text>
+<line class="axis" x1="632.0" x2="632.0" y1="352" y2="356"/><text class="tm" x="632.0" y="370" text-anchor="middle">30%</text>
+<text class="t2" x="352.0" y="392" text-anchor="middle">訊息遺失率 p</text>
+<path class="b1" d="M72.0,92.0 L109.3,93.1 L165.3,100.6 L258.7,125.7 L352.0,162.7 L445.3,199.1 L538.7,235.3 L632.0,266.7 L632.0,277.2 L538.7,246.6 L445.3,210.4 L352.0,173.1 L258.7,133.7 L165.3,105.2 L109.3,95.1 L72.0,92.0 Z"/>
+<path class="b2" d="M72.0,92.0 L109.3,92.1 L165.3,98.4 L258.7,124.9 L352.0,173.3 L445.3,234.9 L538.7,285.3 L632.0,320.6 L632.0,327.7 L538.7,295.0 L445.3,246.2 L352.0,184.1 L258.7,132.9 L165.3,102.5 L109.3,93.2 L72.0,92.0 Z"/>
+<path class="ref" d="M72.0,92.0 L109.3,93.6 L165.3,103.6 L258.7,129.7 L352.0,164.1 L445.3,201.7 L538.7,238.4 L632.0,271.2"><title>理論 n = 4</title></path>
+<text class="tm small" x="567.7" y="286.2">理論 n = 4</text>
+<path class="ref" d="M72.0,92.0 L109.3,92.4 L165.3,98.5 L258.7,125.4 L352.0,176.9 L445.3,234.9 L538.7,286.0 L632.0,321.5"><title>理論 n = 7</title></path>
+<text class="tm small" x="567.7" y="336.5">理論 n = 7</text>
+<path class="line l1" d="M72.0,92.0 L109.3,94.1 L165.3,102.9 L258.7,129.7 L352.0,167.9 L445.3,204.7 L538.7,241.0 L632.0,271.9"/>
+<circle class="hit" cx="72.0" cy="92.0" r="11"><title>n = 4, 遺失 0%：模擬 1.000 ± 0.000，理論 1.000（2000 個高度）</title></circle><circle class="mk f1" cx="72.0" cy="92.0" r="4.5"><title>n = 4, 遺失 0%：模擬 1.000 ± 0.000，理論 1.000（2000 個高度）</title></circle>
+<circle class="hit" cx="109.3" cy="94.1" r="11"><title>n = 4, 遺失 2%：模擬 0.992 ± 0.004，理論 0.994（2000 個高度）</title></circle><circle class="mk f1" cx="109.3" cy="94.1" r="4.5"><title>n = 4, 遺失 2%：模擬 0.992 ± 0.004，理論 0.994（2000 個高度）</title></circle>
+<circle class="hit" cx="165.3" cy="102.9" r="11"><title>n = 4, 遺失 5%：模擬 0.958 ± 0.009，理論 0.955（2000 個高度）</title></circle><circle class="mk f1" cx="165.3" cy="102.9" r="4.5"><title>n = 4, 遺失 5%：模擬 0.958 ± 0.009，理論 0.955（2000 個高度）</title></circle>
+<circle class="hit" cx="258.7" cy="129.7" r="11"><title>n = 4, 遺失 10%：模擬 0.855 ± 0.015，理論 0.855（2000 個高度）</title></circle><circle class="mk f1" cx="258.7" cy="129.7" r="4.5"><title>n = 4, 遺失 10%：模擬 0.855 ± 0.015，理論 0.855（2000 個高度）</title></circle>
+<circle class="hit" cx="352.0" cy="167.9" r="11"><title>n = 4, 遺失 15%：模擬 0.708 ± 0.020，理論 0.723（2000 個高度）</title></circle><circle class="mk f1" cx="352.0" cy="167.9" r="4.5"><title>n = 4, 遺失 15%：模擬 0.708 ± 0.020，理論 0.723（2000 個高度）</title></circle>
+<circle class="hit" cx="445.3" cy="204.7" r="11"><title>n = 4, 遺失 20%：模擬 0.567 ± 0.022，理論 0.578（2000 個高度）</title></circle><circle class="mk f1" cx="445.3" cy="204.7" r="4.5"><title>n = 4, 遺失 20%：模擬 0.567 ± 0.022，理論 0.578（2000 個高度）</title></circle>
+<circle class="hit" cx="538.7" cy="241.0" r="11"><title>n = 4, 遺失 25%：模擬 0.427 ± 0.022，理論 0.437（2000 個高度）</title></circle><circle class="mk f1" cx="538.7" cy="241.0" r="4.5"><title>n = 4, 遺失 25%：模擬 0.427 ± 0.022，理論 0.437（2000 個高度）</title></circle>
+<circle class="hit" cx="632.0" cy="271.9" r="11"><title>n = 4, 遺失 30%：模擬 0.308 ± 0.020，理論 0.311（2000 個高度）</title></circle><circle class="mk f1" cx="632.0" cy="271.9" r="4.5"><title>n = 4, 遺失 30%：模擬 0.308 ± 0.020，理論 0.311（2000 個高度）</title></circle>
+<path class="line l2" d="M72.0,92.0 L109.3,92.6 L165.3,100.4 L258.7,128.9 L352.0,178.7 L445.3,240.6 L538.7,290.1 L632.0,324.2"/>
+<circle class="hit" cx="72.0" cy="92.0" r="11"><title>n = 7, 遺失 0%：模擬 1.000 ± 0.000，理論 1.000（2000 個高度）</title></circle><circle class="mk f2" cx="72.0" cy="92.0" r="4.5"><title>n = 7, 遺失 0%：模擬 1.000 ± 0.000，理論 1.000（2000 個高度）</title></circle>
+<circle class="hit" cx="109.3" cy="92.6" r="11"><title>n = 7, 遺失 2%：模擬 0.998 ± 0.002，理論 0.999（2000 個高度）</title></circle><circle class="mk f2" cx="109.3" cy="92.6" r="4.5"><title>n = 7, 遺失 2%：模擬 0.998 ± 0.002，理論 0.999（2000 個高度）</title></circle>
+<circle class="hit" cx="165.3" cy="100.4" r="11"><title>n = 7, 遺失 5%：模擬 0.968 ± 0.008，理論 0.975（2000 個高度）</title></circle><circle class="mk f2" cx="165.3" cy="100.4" r="4.5"><title>n = 7, 遺失 5%：模擬 0.968 ± 0.008，理論 0.975（2000 個高度）</title></circle>
+<circle class="hit" cx="258.7" cy="128.9" r="11"><title>n = 7, 遺失 10%：模擬 0.858 ± 0.015，理論 0.872（2000 個高度）</title></circle><circle class="mk f2" cx="258.7" cy="128.9" r="4.5"><title>n = 7, 遺失 10%：模擬 0.858 ± 0.015，理論 0.872（2000 個高度）</title></circle>
+<circle class="hit" cx="352.0" cy="178.7" r="11"><title>n = 7, 遺失 15%：模擬 0.666 ± 0.021，理論 0.674（2000 個高度）</title></circle><circle class="mk f2" cx="352.0" cy="178.7" r="4.5"><title>n = 7, 遺失 15%：模擬 0.666 ± 0.021，理論 0.674（2000 個高度）</title></circle>
+<circle class="hit" cx="445.3" cy="240.6" r="11"><title>n = 7, 遺失 20%：模擬 0.428 ± 0.022，理論 0.450（2000 個高度）</title></circle><circle class="mk f2" cx="445.3" cy="240.6" r="4.5"><title>n = 7, 遺失 20%：模擬 0.428 ± 0.022，理論 0.450（2000 個高度）</title></circle>
+<circle class="hit" cx="538.7" cy="290.1" r="11"><title>n = 7, 遺失 25%：模擬 0.238 ± 0.019，理論 0.254（2000 個高度）</title></circle><circle class="mk f2" cx="538.7" cy="290.1" r="4.5"><title>n = 7, 遺失 25%：模擬 0.238 ± 0.019，理論 0.254（2000 個高度）</title></circle>
+<circle class="hit" cx="632.0" cy="324.2" r="11"><title>n = 7, 遺失 30%：模擬 0.107 ± 0.014，理論 0.117（1998 個高度）</title></circle><circle class="mk f2" cx="632.0" cy="324.2" r="4.5"><title>n = 7, 遺失 30%：模擬 0.107 ± 0.014，理論 0.117（1998 個高度）</title></circle>
+<text class="t2 small" x="640.0" y="275.9">n = 4, Q = 3</text>
+<text class="t2 small" x="640.0" y="328.2">n = 7, Q = 5</text>
+<text class="t2" transform="translate(16 222.0) rotate(-90)" text-anchor="middle">第 0 輪提交比例</text>
+</svg>

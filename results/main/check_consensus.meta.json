@@ -1,0 +1,56 @@
+{
+  "git_commit": "080e293",
+  "experiment": "check_consensus",
+  "step": "docs/DESIGN.md section 7, step 1",
+  "config": {
+    "arch": "D",
+    "n_validators": 7,
+    "round_timeout_s": 3.0,
+    "vote_timeout_s": 1.0,
+    "timeout_delta_s": 0.5,
+    "net_delay_s": 0.05,
+    "net_jitter_s": 0.05,
+    "link_loss_p": 0.0,
+    "link_loss_model": "iid",
+    "link_outage_mean_s": 600.0,
+    "link_retries": 0,
+    "link_retry_gap_s": 1.0,
+    "dispatch_period_s": 3600.0,
+    "horizon_h": 24.0,
+    "chain_id": "island-1",
+    "epoch": 1,
+    "command_ttl_s": 900.0,
+    "cold_load_multiplier": 2.0,
+    "cold_load_decay_s": 1800.0,
+    "ufls_margin": 0.05,
+    "runs": 30,
+    "seed": 0,
+    "f": 2,
+    "quorum": 5
+  },
+  "n_values": [
+    4,
+    7
+  ],
+  "loss_values": [
+    0.0,
+    0.02,
+    0.05,
+    0.1,
+    0.15,
+    0.2,
+    0.25,
+    0.3
+  ],
+  "seeds": 10,
+  "runs_per_seed": 4,
+  "heights_per_run": 50,
+  "pass_rule": "|share - theory| <= 4.0 standard errors + 0.005; no same-draw mismatch, no conflicting height, no undecided height",
+  "all_passed": true,
+  "known_issues": [
+    "round_success_prob is itself a Monte Carlo estimate (20000 trials, error about 0.003)",
+    "only round 0 is compared with theory: later rounds start with locks and valid values",
+    "clean_heights leaves out heights whose round 0 did not start at the same moment everywhere",
+    "every cell reuses the same network draws (common random numbers keyed by seed, run and message), so the cells' deviations from theory move together instead of scattering independently"
+  ]
+}
