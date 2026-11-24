@@ -32,6 +32,9 @@ class EventKind(str, Enum):
     ROUND_TIMEOUT = "round_timeout"          # a step timer fired (data["step"]): vote nil or move to the next round
     EVIDENCE = "evidence"                    # two conflicting signed messages from one validator (double signing)
     # dispatch path (all architectures)
+    DECISION = "decision"                    # a dispatch slot was decided: centre (A, B) or committee commit (C, D)
+    DECISION_APPLIED = "decision_applied"    # a substation verified a fresh decision for a slot (block or batch)
+    FAILOVER = "failover"                    # A, B: the standby dispatch centre took over
     COMMAND_ISSUED = "command_issued"        # dispatch centre (A, B) or committee (C, D) issued a command
     COMMAND_RECEIVED = "command_received"    # a substation got a command
     COMMAND_ACCEPTED = "command_accepted"    # the substation verified and executed it

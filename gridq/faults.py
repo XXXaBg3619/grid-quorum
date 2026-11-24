@@ -5,9 +5,10 @@ As in evsim, one Fault object works for every architecture: each architecture
 calls only the hooks that exist in its design, and every hook defaults to
 honest behaviour. So exactly the same fault runs against A, B, C and D.
 
-Hooks (consensus/ calls the first four, lasthop.py node_up and last_hop; sim
-is the Committee when the consensus runs on its own, the LastHop for a
-committee with substations, and may change when sim.py is written):
+Hooks (consensus/ calls the first four; the decision paths node_up, last_hop
+and central_commands). sim is the Committee when the consensus runs on its own,
+otherwise the decision path: lasthop.LastHop in C and D, central.CentralPath in
+A and B; both have cfg, kernel, net, log, subs and inject().
   begin_run(sim, rng)                        before a run; schedule timed actions
                                              (partitions via sim.net, replays, crashes)
   node_up(sim, node, t) -> bool              crash or offline: a down validator sends
@@ -24,18 +25,23 @@ committee with substations, and may change when sim.py is written):
                                              about to be sent: record it (replay
                                              later with sim.inject) or drop it
                                              (False)                                 exp 4
-  central_commands(sim, commands) -> commands  a hacked dispatch centre (A, B)        exp 5
+  central_commands(sim, centre, slot, commands) -> commands
+                                             what dispatch centre `centre` sends for
+                                             `slot`: a hacked centre (A, B)          exp 5
   compromised(sim) -> set of nodes           whose keys the attacker holds           exp 6
 
 The six faults (design doc table): 1 an equivocating validator; 2 one to three
 validators offline; 3 partition or delay; 4 replay of an executed command;
 5 restore commands that are each valid but overload the island together;
 6 common-cause compromise (several nodes of one organisation at once).
-Written so far: Honest and Replay (4). tests/test_consensus.py has first
-versions of 1 and 2 (Equivocate, Down) that the experiment faults will grow from.
+Written so far: Honest, Offline (sites lost: validators, dispatch centres or
+substations; experiment 2 will build on it) and Replay (4).
+tests/test_consensus.py has first versions of 1 and 2 (Equivocate, and Down,
+which Offline generalises).
 """
 from __future__ import annotations
 
+import math
 import random
 from collections import defaultdict
 from typing import Dict, Iterable, List, Set
@@ -69,7 +75,7 @@ class Fault:
     def last_hop(self, sim, src: str, dst: str, msg: dict, t: float) -> bool:
         return True
 
-    def central_commands(self, sim, commands: List) -> List:
+    def central_commands(self, sim, centre: str, slot: int, commands: List) -> List:
         return commands
 
     def compromised(self, sim) -> Set[str]:
@@ -79,6 +85,28 @@ class Fault:
 class Honest(Fault):
     def __init__(self):
         super().__init__(0.0)
+
+
+class Offline(Fault):
+    """Nodes that send and receive nothing during [start, end): a destroyed or cut-off site.
+
+    One object serves every architecture, each node name counting where it
+    exists: validators v0..v6 (C, D; experiment 2), the dispatch centres
+    "centre" and "backup" (A, B) or substations. A down node's timers keep
+    running, so it resumes when the window ends."""
+    label = "offline"
+
+    def __init__(self, nodes: Iterable[str], start: float = 0.0, end: float = math.inf, p_run: float = 1.0):
+        super().__init__(p_run)
+        self.nodes = frozenset(nodes)
+        self.start, self.end = start, end
+
+    def describe(self) -> dict:
+        return {**super().describe(), "nodes": sorted(self.nodes), "start": self.start,
+                "end": None if math.isinf(self.end) else self.end}
+
+    def node_up(self, sim, node: str, t: float) -> bool:
+        return not (self.active and node in self.nodes and self.start <= t < self.end)
 
 
 def _commands_for(block, substation: str) -> List[dict]:
@@ -169,4 +197,6 @@ def build(name: str, **kw) -> Fault:
         return Honest()
     if name.lower() == "replay":
         return Replay(**kw)
+    if name.lower() == "offline":
+        return Offline(**kw)
     raise ValueError(f"unknown or not yet implemented fault {name!r}")

@@ -42,15 +42,28 @@ COMMAND_REJECTED (REJECT_REASONS):
   version    state_mismatch: state_version is not the current version
   ttl        expired: past `expires` by the substation's own clock; secondary,
              because clocks can be jammed (experiment 4)
+             dead_bus: the island is dark, nothing can be closed (an interlock,
+             always on, like unknown_feeder)
              policy_violation: B only, the local rule check refused it
 
 Experiment 4 turns the named groups off (`checks`) to show which check stops
 which replay. The signature check stays on: without it nothing is verified.
 
+Local actions (local_action): UFLS trips and an island collapse (power.py)
+and B's pre-signed rotation table switch feeders without a command; they bump
+the state version too, so a command computed before them is refused.
+
 Fail-safe (question 26): without a fresh valid command the substation simply
-holds its state; only local protection (overload, UFLS) may act, which comes
-with power.py. No automatic re-close and no switch to a fallback schedule,
-except in B, whose static plan is its definition.
+holds its state; only local protection (UFLS) acts. No automatic re-close and
+no switch to a fallback schedule, except in B, whose static plan is its
+definition.
+
+For its state reports the verifier also keeps, per feeder and by its own
+clock, when the feeder last switched (since, None if never), the total of its
+finished outages (off_closed) and the length of the last one (last_off), each
+outage counted in whole minutes (outage_s), so that commands arriving a few
+seconds apart (a committee round lost to an offline proposer) do not change
+what the rotation sees.
 """
 from __future__ import annotations
 
@@ -66,11 +79,17 @@ from .hashing import canonical_hash
 REJECT_REASONS = (
     "wrong_chain", "wrong_epoch", "stale_seq", "unknown_feeder", "relative_target",
     "state_mismatch", "insufficient_quorum", "bad_signature", "header_mismatch",
-    "expired", "policy_violation",
+    "expired", "policy_violation", "dead_bus",
 )
 TARGETS = ("on", "off")
 CHECKS = ("binding", "order", "target", "version", "ttl")
+OUTAGE_STEP_S = 60.0        # finished outages are booked in whole minutes
 ALL_CHECKS = frozenset(CHECKS)
+
+
+def outage_s(seconds: float) -> float:
+    """An outage's length as substations book it: rounded to whole minutes."""
+    return round(seconds / OUTAGE_STEP_S) * OUTAGE_STEP_S
 
 
 def make_command(substation: str, feeder: str, target: str, seq: int, state_version: int,
@@ -102,27 +121,35 @@ def commands_for(block, substation: str) -> List[dict]:
 class Verifier:
     """One substation's light node: what it trusts, its feeders and its checks.
 
-    keys: the validators' keys (C, D) or the key ring holding the centre's key
-    (A, B, with `centre` naming it). clock_offset_s: how far the substation's
-    clock is ahead of true time (negative: behind). policy_fn(verifier, cmd):
-    B's local rule check."""
+    keys: the validators' keys (C, D) or the key ring holding the centres' keys
+    (A, B, with `centre` naming the centre or centres whose signature counts).
+    clock_offset_s: how far the substation's clock is ahead of true time
+    (negative: behind). policy_fn(verifier, cmd, t) -> bool: B's local rule
+    check. interlock_fn(verifier, cmd, t) -> reason or "": physical interlocks
+    (power.Island.interlock). on_switch(verifier, feeder, old, new, t, cause):
+    called after every switching, by command or local action."""
 
     def __init__(self, cfg, name: str, feeders: Mapping[str, str], *, keys=None,
-                 centre: Optional[str] = None, checks: Iterable[str] = ALL_CHECKS,
+                 centre=None, checks: Iterable[str] = ALL_CHECKS,
                  clock_offset_s: float = 0.0, policy_fn: Optional[Callable] = None,
+                 interlock_fn: Optional[Callable] = None, on_switch: Optional[Callable] = None,
                  log: Optional[EventLog] = None):
         checks = frozenset(checks)
         if not checks <= ALL_CHECKS:
             raise ValueError(f"unknown checks {sorted(checks - ALL_CHECKS)}; known: {CHECKS}")
         if any(s not in TARGETS for s in feeders.values()):
             raise ValueError("feeder states must be 'on' or 'off'")
-        self.cfg, self.name, self.keys, self.centre = cfg, name, keys, centre
+        self.cfg, self.name, self.keys = cfg, name, keys
+        self.centres = frozenset([centre] if isinstance(centre, str) else (centre or ()))
         self.actor = f"substation:{name}"
         self.checks = checks
         self.clock_offset_s = clock_offset_s
-        self.policy_fn = policy_fn
+        self.policy_fn, self.interlock_fn, self.on_switch = policy_fn, interlock_fn, on_switch
         self.log = log if log is not None else EventLog()
         self.feeders = dict(feeders)
+        self.since: dict = {f: None for f in self.feeders}         # local time of the last switch
+        self.off_closed: dict = {f: 0.0 for f in self.feeders}     # finished outages, seconds
+        self.last_off: dict = {f: 0.0 for f in self.feeders}       # the last finished outage, seconds
         self.tip_height, self.tip_hash = 0, GENESIS
         self.last_seq = 0
         self.version = 0
@@ -189,8 +216,8 @@ class Verifier:
             if envelope.get("epoch") != self.cfg.epoch:
                 return self._reject(cmds, "wrong_epoch", ctx, t)
         digest = command_digest(envelope.get("chain_id"), envelope.get("epoch"), cmd)
-        if (self.centre is None or envelope.get("issuer") != self.centre
-                or not self.keys.verify(self.centre, digest, envelope.get("sig"))):
+        issuer = envelope.get("issuer")
+        if issuer not in self.centres or not self.keys.verify(issuer, digest, envelope.get("sig")):
             return self._reject(cmds, "bad_signature", ctx, t)
         if cmd.get("substation") != self.name:
             return self._reject(cmds, "unknown_feeder", ctx, t)
@@ -210,16 +237,15 @@ class Verifier:
             reason = "state_mismatch"
         elif "ttl" in self.checks and not (type(expires) in (int, float) and self.local_time(t) <= expires):
             reason = "expired"
-        elif self.policy_fn is not None and not self.policy_fn(self, cmd):
-            reason = "policy_violation"
         else:
-            reason = ""
+            reason = self.interlock_fn(self, cmd, t) if self.interlock_fn is not None else ""
+            if not reason and self.policy_fn is not None and not self.policy_fn(self, cmd, t):
+                reason = "policy_violation"
         if reason:
             self._log_reject(cmd, reason, ctx, t)
             return False
         old = self.feeders[f]
         new = target if target in TARGETS else ("off" if old == "on" else "on")   # a toggle flips
-        self.feeders[f] = new
         self.version += 1
         if type(seq) is int:
             self.last_seq = max(self.last_seq, seq)
@@ -227,10 +253,41 @@ class Verifier:
         self.log.append(t, EventKind.COMMAND_ACCEPTED, self.actor,
                         {**ctx, "feeder": f, "target": target, "seq": seq, "switched": new != old})
         if new != old:
-            self.log.append(t, EventKind.FEEDER_SWITCHED, self.actor,
-                            {"substation": self.name, "feeder": f, "state": new, "cause": "command",
-                             "delivery": ctx["delivery"]})
+            self._switch(f, new, t, "command", ctx["delivery"])
         return True
+
+    # ---------- local actions (UFLS, collapse, B's table) ----------
+    def local_action(self, feeder: str, target: str, t: float, cause: str) -> bool:
+        """Switch a feeder without a command; returns False if nothing changed or an interlock refused."""
+        if feeder not in self.feeders or target not in TARGETS or self.feeders[feeder] == target:
+            return False
+        if self.interlock_fn is not None and self.interlock_fn(self, {"feeder": feeder, "target": target}, t):
+            self.stats["interlocked"] += 1
+            return False
+        self.version += 1
+        self.stats["local_" + cause] += 1
+        self._switch(feeder, target, t, cause, "")
+        return True
+
+    def _switch(self, f: str, new: str, t: float, cause: str, delivery: str) -> None:
+        old, now = self.feeders[f], self.local_time(t)
+        if old == "off" and new == "on":
+            spell = outage_s(now - (self.since[f] if self.since[f] is not None else 0.0))
+            self.off_closed[f] += spell
+            self.last_off[f] = spell
+        self.feeders[f], self.since[f] = new, now
+        self.log.append(t, EventKind.FEEDER_SWITCHED, self.actor,
+                        {"substation": self.name, "feeder": f, "state": new, "cause": cause, "delivery": delivery})
+        if self.on_switch is not None:
+            self.on_switch(self, f, old, new, t, cause)
+
+    def report(self) -> dict:
+        """This substation's state as it reports it (unsigned): version, last executed seq, and per
+        feeder its state, last switch, finished outages and the last outage's length."""
+        return {"substation": self.name, "version": self.version, "last_seq": self.last_seq,
+                "states": dict(self.feeders), "since": dict(self.since),
+                "off_closed": {f: round(x, 3) for f, x in self.off_closed.items()},
+                "last_off": {f: round(x, 3) for f, x in self.last_off.items()}}
 
     def _reject(self, cmds: List[dict], reason: str, ctx: dict, t: float) -> str:
         self.stats[reason] += 1

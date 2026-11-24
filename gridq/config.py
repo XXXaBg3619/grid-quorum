@@ -14,8 +14,11 @@ n = 7 gives f = 2, Q = 5 (the wartime setting). Liveness assumes partial
 synchrony: round timeouts grow every round, so once the network behaves some
 round is long enough to finish.
 
-The power-model fields are placeholders until power.py is written; their names
-follow the design doc (G(t), cold-load multiplier, UFLS).
+Island (power.py, loads.py) and policy (policy.py) fields follow the design
+doc's simplified power model: available supply G(t), feeder loads with priority
+weights, a cold-load multiplier and simplified under-frequency load shedding
+(UFLS). Their values are illustrative assumptions for a model check, not
+measurements of a real island; experiments sweep the ones that matter.
 """
 from __future__ import annotations
 
@@ -52,10 +55,31 @@ class GridConfig:
     epoch: int = 1                   # the validator set is fixed (epoch changes are future work)
     command_ttl_s: float = 900.0     # secondary freshness check; sequence numbers and state versions come first
 
-    # --- Power model (placeholders until power.py) ---
-    cold_load_multiplier: float = 2.0    # a re-energised feeder draws this x its normal load ...
-    cold_load_decay_s: float = 1800.0    # ... decaying back over this time
-    ufls_margin: float = 0.05        # served load above G(t) x (1 + margin) trips UFLS
+    # --- Island power model (power.py, loads.py) ---
+    start_hour: float = 0.0          # local time of day at t = 0
+    load_noise: float = 0.03         # feeder load noise: relative standard deviation, AR(1) per minute
+    # G(t) as (hour, share of the island's peak demand), linear between points; two points at the same
+    # hour are a step (lines cut). Default: 70 % available, a strike at hour 3 leaves 45 %, slow
+    # recovery to 60 % from hour 14 to 20.
+    supply_profile: tuple = ((0.0, 0.70), (3.0, 0.70), (3.0, 0.45), (14.0, 0.45), (20.0, 0.60))
+    supply_jitter_h: float = 1.0     # each run shifts every point after hour 0 by one draw in [-j, j]
+    cold_load_multiplier: float = 2.0    # a feeder re-energised after a long outage draws this x its load ...
+    cold_load_decay_s: float = 1800.0    # ... decaying back linearly over this time (shorter outages: less)
+    ufls_margin: float = 0.05        # served load above G(t) x (1 + margin) ...
+    ufls_delay_s: float = 2.0        # ... for this long trips UFLS stages until the load fits G(t)
+    blackstart_s: float = 3600.0     # a collapsed island stays dark this long
+    balance_check_s: float = 60.0    # the balance is also checked this often (loads drift)
+
+    # --- Allocation policy (policy.py) ---
+    reserve_margin: float = 0.05     # plan at most G(t) x (1 - margin)
+    min_dwell_s: float = 1800.0      # a non-critical feeder keeps a new state this long if the budget allows
+
+    # --- Central dispatch (A, B) ---
+    heartbeat_s: float = 30.0        # the active centre's heartbeat to the other centre
+    failover_s: float = 90.0         # the standby centre takes over after this long without one
+    local_max_switch: int = 2        # B's enforcer: switching operations per substation per dispatch period
+    fallback_after_s: float = 900.0  # B: no word from any centre for this long -> pre-signed rotation table
+    plan_supply_share: float = 0.40  # B's table assumes this share of the island's peak demand (question 22)
 
     # --- Run ---
     runs: int = 30                   # island events per seed
@@ -70,6 +94,11 @@ class GridConfig:
             raise ValueError(f"link_loss_model must be one of {LOSS_MODELS}, got {self.link_loss_model!r}")
         if not 0.0 <= self.link_loss_p <= 1.0:
             raise ValueError("link_loss_p must be in [0, 1]")
+        hours = [h for h, _ in self.supply_profile]
+        if not self.supply_profile or hours[0] != 0.0 or hours != sorted(hours):
+            raise ValueError("supply_profile needs points sorted by hour, the first at hour 0")
+        if not 0.0 <= self.reserve_margin < 1.0 or self.cold_load_multiplier < 1.0:
+            raise ValueError("reserve_margin must be in [0, 1) and cold_load_multiplier at least 1")
 
     # ---- derived ----
     @property

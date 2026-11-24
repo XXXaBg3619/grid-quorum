@@ -39,7 +39,7 @@ class TestSkeleton(unittest.TestCase):
         self.assertEqual(f.proposal(None, "v0", 1, 0, "blk", rec), {"v1": "blk", "v2": "blk"})
         self.assertEqual(f.vote(None, "v0", "prevote", 1, 0, "blk", rec), {"v1": "blk", "v2": "blk"})
         self.assertTrue(f.node_up(None, "v0", 0.0))
-        self.assertEqual(f.central_commands(None, ["c"]), ["c"])
+        self.assertEqual(f.central_commands(None, "centre", 0, ["c"]), ["c"])
         self.assertEqual(f.compromised(None), set())
         with self.assertRaises(ValueError):
             faults.build("equivocate")

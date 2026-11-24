@@ -192,7 +192,7 @@ class TestCommandChecks(unittest.TestCase):
         self.assertEqual(v.feeders["S1-F1"], "off")
 
     def test_policy_check(self):
-        v = self.one(cmd("S1-F1", "on", 1, 0), policy_fn=lambda ver, c: c["target"] == "off")
+        v = self.one(cmd("S1-F1", "on", 1, 0), policy_fn=lambda ver, c, t: c["target"] == "off")
         self.assertEqual(reasons(v), ["policy_violation"])
 
     def test_logged_reasons_are_the_documented_ones(self):

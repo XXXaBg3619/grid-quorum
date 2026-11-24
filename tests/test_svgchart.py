@@ -26,6 +26,15 @@ class TestSvgChart(unittest.TestCase):
         self.assertIn("prefers-color-scheme: dark", svg)
         self.assertNotIn("nan", svg.lower().replace("nanum", ""))
 
+    def test_reference_label_in_legend_only(self):
+        panel = {"title": "", "series": [{"label": "s", "slot": 1, "points": [(0, 0.2, "t0"), (1, 0.4, "t1")]}],
+                 "refs": [{"label": "plan<40%>", "points": [(0.4, 0.0), (0.4, 1.0)], "label_at": "none"}]}
+        root = ET.fromstring(chart([panel], title="T", legend=[("s", 1, "line"), ("plan<40%>", 0, "ref")]))
+        ns = "{http://www.w3.org/2000/svg}"
+        shown = [e.text for e in root.iter(ns + "text")]
+        self.assertEqual(shown.count("plan<40%>"), 1)                   # the legend entry, no label at the line
+        self.assertIn("plan<40%>", [e.text for e in root.iter(ns + "title")])   # the line keeps its tooltip
+
     def test_heat_table(self):
         self.assertEqual([heat_bucket(v) for v in (0.0, 0.001, 1 / 6, 0.5, 1.0)], [0, 1, 1, 3, 6])
         svg = matrix(["a", "b"], ["x", "y\nz"], [[0.0, 1.0], [0.5, None]], title="M", subtitle="s1\ns2",

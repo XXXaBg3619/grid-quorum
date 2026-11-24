@@ -1,24 +1,23 @@
 """Metrics. Helpers ported from evsim/metrics.py (BlokcChin@796b43c): jain,
-mean_ci95 and the paired difference. Grid metrics so far: what substations did
-with injected deliveries, committed commands executed, and feeder states
-against a reference run (experiment 4); the rest is still to be written.
+mean_ci95 and the paired difference. Grid metrics: what substations did with
+injected deliveries, committed commands executed, and feeder states against a
+reference run (experiment 4); and for a whole island event (island_metrics):
+critical-load hours, served energy, UFLS trips, collapses, availability,
+commands and rotation fairness.
 
 Principle kept from evsim: metrics are computed from the event log only
 (public and truth events), never from an architecture's internal state. That
 keeps them independent of the architecture and proves the log carries enough
 information.
 
-Planned metrics (design doc, section 下一步：實作範圍與順序):
+The island metrics need the loads, which the log does not list: they are
+rebuilt from run_meta (config, run, island table, load scale), as the keyed
+random draws make them reproducible.
+
+Still to come (design doc, section 下一步：實作範圍與順序):
   conflicting_commits   two different blocks committed at one height (safety)
-  bad_accept_rate       share of violating, stale, replayed or under-signed
-                        commands that a substation executed
   commit_latency_s      proposal to commit (C, D); issue to execution at the
                         substation (all architectures)
-  availability          share of dispatch periods in which a new decision
-                        could still take effect
-  critical_load_hours   hours the critical feeders (hospital, water, telecom,
-                        shelter) were served
-  island_collapses      ISLAND_COLLAPSE events
   break_difficulty      P(more than f validators compromised), C vs D (theory.py)
   data_exposure         sensitive data one compromised node can read
 """
@@ -30,7 +29,9 @@ import statistics
 from collections import Counter
 from typing import Dict, Iterable, List, Mapping, Tuple
 
+from .config import GridConfig
 from .events import EventKind
+from .loads import Loads, specs_from_meta
 
 
 def jain(xs: Iterable[float]) -> float:
@@ -130,4 +131,103 @@ def state_deviation_s(actual: Mapping, reference: Mapping, end: float) -> Dict[s
             sr = ref[bisect.bisect_right(rt, a) - 1][1]
             if sa != sr:
                 out["unsafe_on" if sa == "on" else "wrong_off"] += b - a
+    return out
+
+
+# ---------- a whole island event ----------
+def config_from_meta(d: Mapping) -> GridConfig:
+    """The GridConfig a run's log was made with (run_meta["config"])."""
+    kw = {k: v for k, v in d.items() if k not in ("f", "quorum")}
+    kw["supply_profile"] = tuple(tuple(p) for p in kw["supply_profile"])
+    return GridConfig(**kw)
+
+
+def on_intervals(timeline: List[Tuple[float, str]], end: float) -> List[Tuple[float, float]]:
+    """[(start, stop)] in [0, end) when a feeder was on, from its [(t, state)] timeline."""
+    out, since = [], None
+    for t, st in timeline + [(end, "end")]:
+        t = min(t, end)
+        if st == "on" and since is None:
+            since = t
+        elif st != "on" and since is not None:
+            if t > since:
+                out.append((since, t))
+            since = None
+    return out
+
+
+def island_metrics(log) -> dict:
+    """One island event's results, from its log (public events) and run_meta.
+
+      critical_served_share  feeder time the critical feeders were on, over all
+                             their time (critical_hours_lost: the rest, hours)
+      served_share           customer energy served over customer energy
+                             demanded (actual demand without cold-load pickup)
+      ufls_trips, ufls_events  UFLS stage trips, and distinct moments with one
+      collapses, dark_h      island collapses and hours dark
+      availability           share of (substation, dispatch slot) pairs in
+                             which the substation verified a fresh decision for
+                             the slot before the slot ended
+      decided_share          slots with a decision (DECISION, any issuer)
+      issued, executed       committed or centre-issued commands, and those
+                             executed (exactly once each, by (substation, seq))
+      rejected:<reason>      COMMAND_REJECTED by reason
+      fairness               Jain's index of the non-critical feeders' on-time
+      failovers, fallback_starts, table_switches  A and B's centre take-overs,
+                             B's substations entering the pre-signed table, and
+                             feeders it switched
+    """
+    meta = log.run_meta
+    cfg = config_from_meta(meta["config"])
+    specs = specs_from_meta(meta["island"])
+    end, period = cfg.horizon_s, cfg.dispatch_period_s
+    n_slots = cfg.n_dispatches
+    initial: Dict[str, Dict[str, str]] = {}
+    for sp in specs:
+        initial.setdefault(sp.substation, {})[sp.name] = "on"
+    tl = feeder_timelines(log, initial)
+    on = {sp.name: on_intervals(tl[(sp.substation, sp.name)], end) for sp in specs}
+    on_s = {f: sum(b - a for a, b in iv) for f, iv in on.items()}
+    crit = [sp.name for sp in specs if sp.critical]
+    rest = [sp.name for sp in specs if not sp.critical]
+
+    loads = Loads(cfg, specs, meta.get("run", 0), meta.get("load_scale", 1.0))
+    step = 60.0
+    grid = [(i + 0.5) * step for i in range(int(end // step))]
+    served = demand = 0.0
+    for sp in specs:
+        iv, j = on[sp.name], 0
+        for t in grid:
+            d = loads.demand(sp.name, t) * step / 3600.0
+            demand += d
+            while j < len(iv) and iv[j][1] <= t:
+                j += 1
+            if j < len(iv) and iv[j][0] <= t:
+                served += d
+
+    ufls = list(log.of_kind(EventKind.UFLS_TRIP))
+    collapses = list(log.of_kind(EventKind.ISLAND_COLLAPSE))
+    applied = {(e.data.get("substation"), e.data.get("slot")) for e in log.of_kind(EventKind.DECISION_APPLIED)
+               if type(e.data.get("slot")) is int and e.t < (e.data["slot"] + 1) * period}
+    decided = {e.data.get("slot") for e in log.of_kind(EventKind.DECISION)}
+    issued, executed = commands_executed(log)
+    out = {
+        "critical_served_share": round(sum(on_s[f] for f in crit) / (len(crit) * end), 6) if crit else 1.0,
+        "critical_hours_lost": round(sum(end - on_s[f] for f in crit) / 3600.0, 4),
+        "served_share": round(served / demand, 6) if demand else 1.0,
+        "served_mwh": round(served / 1000.0, 3), "demand_mwh": round(demand / 1000.0, 3),
+        "ufls_trips": len(ufls), "ufls_events": len({round(e.t, 6) for e in ufls}),
+        "ufls_feeders": sum(len(e.data.get("feeders", ())) for e in ufls),
+        "collapses": len(collapses),
+        "dark_h": round(sum(max(0.0, min(e.data["dark_until"], end) - e.t) for e in collapses) / 3600.0, 4),
+        "availability": round(len(applied) / (len(initial) * n_slots), 6) if n_slots else 1.0,
+        "decided_share": round(len(decided & set(range(n_slots))) / n_slots, 6) if n_slots else 1.0,
+        "issued": issued, "executed": executed,
+        "fairness": round(jain(on_s[f] for f in rest), 6),
+        "failovers": sum(1 for e in log.of_kind(EventKind.FAILOVER) if e.data.get("action") == "take_over"),
+        "fallback_starts": sum(1 for e in log.of_kind(EventKind.FALLBACK_SCHEDULE) if e.data.get("action") == "start"),
+        "table_switches": sum(1 for e in log.of_kind(EventKind.FEEDER_SWITCHED) if e.data.get("cause") == "table"),
+    }
+    for reason, n in sorted(Counter(e.data.get("reason") for e in log.of_kind(EventKind.COMMAND_REJECTED)).items()):
+        out[f"rejected:{reason}"] = n
     return out

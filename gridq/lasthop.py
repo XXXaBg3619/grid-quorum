@@ -4,25 +4,26 @@
              proof to every substation, so one honest validator's copy is
              enough when up to f validators withhold. Anyone who copies a
              delivery can send it again later: experiment 4.
-  ordering   a substation applies blocks in height order (verifier.Verifier).
-             It keeps a valid block that is more than one height ahead and
-             asks every validator for the missing heights, again after
-             SYNC_RETRY_S, doubling up to SYNC_RETRY_MAX_S while the gap lasts.
-  reports    a substation signs its state (version and feeder states) with
-             its own key and sends it to every validator shortly after the
-             state changes and once per dispatch period. A proposer puts each
-             substation's newest report on the chain, so the next commands are
-             computed from agreed state, every validator can check them, and a
-             substation that missed or refused commands gets commands for the
-             state it is really in.
-  dispatch   RotatingDispatch stands in for policy.py until step 3: rotating
-             outages, one group of feeders off per dispatch slot.
+  ordering   a substation applies blocks in height order (verifier.Verifier);
+             it keeps a valid block that is more than one height ahead and
+             asks every validator for the missing heights (substation.py).
+  reports    a substation signs its state (Verifier.report) with its own key
+             and sends it to every validator shortly after the state changes
+             and once per dispatch period. A proposer puts each substation's
+             newest report on the chain, so the next commands are computed
+             from agreed state, every validator can check them, and a
+             substation that missed or refused commands, or whose protection
+             tripped feeders, gets commands for the state it is really in.
+  dispatch   what a block carries and how every validator checks it
+             (ChainDispatch): PolicyDispatch runs policy.decide on the reports
+             and the slot's measurements (architectures C and D in sim.py);
+             RotatingDispatch, one group of feeders off per dispatch slot
+             without a power model, is what experiment 4 and the tests use.
 
 Every validator-to-substation message passes fault.last_hop (which may record
 or drop it) and then the network; LastHop.inject() is how an attacker on the
 link sends. run_lasthop() builds one island (committee, substations, network)
-for the tests and experiment 4; sim.py will take over once the power model
-exists.
+without the power model, for the tests and experiment 4.
 """
 from __future__ import annotations
 
@@ -34,16 +35,15 @@ from .consensus import Committee
 from .crypto import KeyRing
 from .events import EventKind, EventLog
 from .faults import Fault, Honest
-from .hashing import canonical_hash
 from .kernel import PRIO_MESSAGE, Kernel
+from .loads import FeederSpec, by_substation
 from .network import Network
+from .policy import commands_for, decide, start_view
+from .substation import (FUTURE_CAP, REPORT_DELAY_S, SYNC_RETRY_MAX_S, SYNC_RETRY_S,  # noqa: F401 (re-exported)
+                         Link, Substation, report_digest, valid_report)
 from .verifier import ALL_CHECKS, Verifier, make_command
 
-SYNC_RETRY_S = 5.0          # first wait before asking again for a missing height ...
-SYNC_RETRY_MAX_S = 60.0     # ... doubling up to this
 SYNC_BATCH = 64             # most blocks in one sync reply
-FUTURE_CAP = 64             # most blocks ahead of the trusted header a substation keeps
-REPORT_DELAY_S = 0.5        # a change report waits this long, so one report covers one delivery's commands
 
 
 def default_feeders(n_substations: int = 4, per_substation: int = 3) -> Dict[str, List[str]]:
@@ -51,37 +51,131 @@ def default_feeders(n_substations: int = 4, per_substation: int = 3) -> Dict[str
     return {f"S{i + 1}": [f"S{i + 1}-F{j + 1}" for j in range(per_substation)] for i in range(n_substations)}
 
 
-def report_digest(cfg, report: dict) -> str:
-    """What a substation signs in its state report."""
-    return canonical_hash({"type": "report", "chain_id": cfg.chain_id, "substation": report["substation"],
-                           "version": report["version"], "states": report["states"]})
+class ChainDispatch:
+    """What C and D's committee decides, and how every validator checks a proposal.
+
+    A block's payload is {"reports", *EXTRA, "commands"}:
+      reports   the newest signed state report the proposer holds for each
+                substation, if newer than the chain's view; at most one per
+                substation, sorted by substation
+      EXTRA     inputs besides the reports that every validator reads alike
+                (extras(slot); PolicyDispatch: the slot's measurements)
+      commands  what the rules give for the chain's view updated by the
+                reports and the extras (block_commands); seq continues the
+                substation's count of commands on the chain, state_version is
+                the view's version plus the command's place among the
+                substation's commands in this block, expires = start of the
+                block's slot + cfg.command_ttl_s
+    valid() recomputes the commands, so a block is valid only if they are
+    exactly what the rules give for the agreed state (the global check).
+    """
+    EXTRA: Tuple[str, ...] = ()
+    FULL_REPORTS = False        # reports must carry policy.decide's bookkeeping (substation.valid_report)
+
+    def __init__(self, cfg, feeders: Mapping[str, Sequence[str]], sub_keys: KeyRing,
+                 reports_of: Optional[Callable[[str], Mapping[str, dict]]] = None):
+        self.cfg, self.sub_keys = cfg, sub_keys
+        self.feeders = {s: list(fs) for s, fs in sorted(feeders.items())}
+        self.reports_of = reports_of if reports_of is not None else (lambda node: {})
+        self._seen: Dict[str, tuple] = {}          # node -> (chain length, view, commands per substation)
+        self._checked: Dict[str, tuple] = {}       # node -> (chain length, {id(block): (block, valid)})
+
+    # ---------- what a subclass defines ----------
+    def start_state(self) -> Dict[str, dict]:
+        """The view before any report is on the chain."""
+        raise NotImplementedError
+
+    def entry(self, report: dict) -> dict:
+        """What the view keeps of a report."""
+        return {"version": report["version"], "states": report["states"]}
+
+    def extras(self, slot: int) -> dict:
+        return {}
+
+    def block_commands(self, view: Mapping[str, dict], counts: Mapping[str, int], slot: int,
+                       extras: Mapping) -> List[dict]:
+        raise NotImplementedError
+
+    # ---------- shared ----------
+    def chain_state(self, node) -> Tuple[Dict[str, dict], Counter]:
+        """(view, commands per substation) after the node's decided chain."""
+        n, view, counts = self._seen.get(node.name, (0, None, None))
+        if view is None:
+            view, counts = self.start_state(), Counter()
+        if n < len(node.chain):
+            view, counts = dict(view), Counter(counts)
+            for header in node.chain[n:]:
+                payload = header.get("payload") or {}
+                for r in payload.get("reports", ()):
+                    view[r["substation"]] = self.entry(r)
+                for c in payload.get("commands", ()):
+                    counts[c["substation"]] += 1
+            self._seen[node.name] = (len(node.chain), view, counts)
+        return view, counts
+
+    def authentic(self, r) -> bool:
+        """A state report signed by a known substation, naming exactly its feeders."""
+        return valid_report(self.cfg, self.sub_keys, self.feeders, r, self.FULL_REPORTS)
+
+    def _updated(self, view: Mapping[str, dict], reports: Iterable[dict]) -> Dict[str, dict]:
+        view = dict(view)
+        for r in reports:
+            view[r["substation"]] = self.entry(r)
+        return view
+
+    def propose(self, node, height: int, rnd: int, t: float) -> dict:
+        view, counts = self.chain_state(node)
+        mine = self.reports_of(node.name)
+        reports = [mine[s] for s in sorted(mine) if s in view and mine[s]["version"] > view[s]["version"]]
+        slot = node.com.slot_of(t)
+        extras = self.extras(slot)
+        return {"reports": reports, **extras,
+                "commands": self.block_commands(self._updated(view, reports), counts, slot, extras)}
+
+    def valid(self, node, block) -> bool:
+        """The application check (Committee valid_fn); remembered per node and height."""
+        n, seen = self._checked.get(node.name, (-1, None))
+        if n != len(node.chain):
+            seen = {}
+            self._checked[node.name] = (len(node.chain), seen)
+        hit = seen.get(id(block))
+        if hit is None or hit[0] is not block:
+            hit = seen[id(block)] = (block, self._valid(node, block))
+        return hit[1]
+
+    def _valid(self, node, block) -> bool:
+        payload = block.get("payload")
+        if not isinstance(payload, dict) or set(payload) != {"reports", "commands", *self.EXTRA}:
+            return False
+        reports = payload["reports"]
+        if not isinstance(reports, list) or not all(self.authentic(r) for r in reports):
+            return False
+        subs = [r["substation"] for r in reports]
+        if subs != sorted(set(subs)):                    # at most one report per substation, in order
+            return False
+        view, counts = self.chain_state(node)
+        if any(r["version"] <= view[r["substation"]]["version"] for r in reports):
+            return False                                 # only newer reports: no rolling back a substation's state
+        extras = {k: payload[k] for k in self.EXTRA}
+        if extras != self.extras(block["slot"]):
+            return False
+        return payload["commands"] == self.block_commands(self._updated(view, reports), counts, block["slot"], extras)
 
 
-class RotatingDispatch:
-    """Stand-in for policy.py (step 3): rotating outages written as absolute feeder targets.
+class RotatingDispatch(ChainDispatch):
+    """Rotating outages written as absolute feeder targets, without a power model (experiment 4, tests).
 
     Feeder j of every substation is in group j % groups; in dispatch slot k,
-    group k % groups is off and every other feeder is on. A block's commands
-    follow from the chain and the block alone, so every validator checks them
-    (valid):
-      view      each substation's newest report on the chain (at first: every
-                feeder on, version 0), updated by the reports in the block
-      commands  one per feeder whose target in the block's slot differs from
-                the view, by substation and feeder; seq continues the
-                substation's count of commands on the chain; state_version is
-                the view's version plus the command's place among the
-                substation's commands in this block; expires = start of the
-                block's slot + cfg.command_ttl_s
-    """
+    group k % groups is off and every other feeder is on. The view keeps each
+    substation's version and feeder states (at first: every feeder on,
+    version 0)."""
 
     def __init__(self, cfg, feeders: Mapping[str, Sequence[str]], sub_keys: KeyRing, groups: int = 3,
                  reports_of: Optional[Callable[[str], Mapping[str, dict]]] = None):
         if groups < 1:
             raise ValueError("groups must be at least 1")
-        self.cfg, self.groups, self.sub_keys = cfg, groups, sub_keys
-        self.feeders = {s: list(fs) for s, fs in sorted(feeders.items())}
-        self.reports_of = reports_of if reports_of is not None else (lambda node: {})
-        self._seen: Dict[str, tuple] = {}          # node -> (chain length, view, commands per substation)
+        super().__init__(cfg, feeders, sub_keys, reports_of)
+        self.groups = groups
 
     def start_state(self) -> Dict[str, dict]:
         return {s: {"version": 0, "states": {f: "on" for f in fs}} for s, fs in self.feeders.items()}
@@ -90,20 +184,6 @@ class RotatingDispatch:
         off = slot % self.groups
         return {s: {f: "off" if j % self.groups == off else "on" for j, f in enumerate(fs)}
                 for s, fs in self.feeders.items()}
-
-    def chain_state(self, node) -> Tuple[Dict[str, dict], Counter]:
-        """(view, commands per substation) after the node's decided chain."""
-        n, view, counts = self._seen.get(node.name, (0, self.start_state(), Counter()))
-        if n < len(node.chain):
-            view, counts = dict(view), Counter(counts)
-            for header in node.chain[n:]:
-                payload = header.get("payload") or {}
-                for r in payload.get("reports", ()):
-                    view[r["substation"]] = {"version": r["version"], "states": r["states"]}
-                for c in payload.get("commands", ()):
-                    counts[c["substation"]] += 1
-            self._seen[node.name] = (len(node.chain), view, counts)
-        return view, counts
 
     def commands(self, view: Mapping[str, dict], counts: Mapping[str, int], slot: int) -> List[dict]:
         targets = self.target(slot)
@@ -118,136 +198,51 @@ class RotatingDispatch:
                     k += 1
         return out
 
-    def authentic(self, r) -> bool:
-        """A state report signed by a known substation, naming exactly its feeders."""
-        if not (isinstance(r, dict) and r.get("substation") in self.feeders and type(r.get("version")) is int
-                and isinstance(r.get("states"), dict)):
-            return False
-        return (set(r["states"]) == set(self.feeders[r["substation"]])
-                and self.sub_keys.verify(r["substation"], report_digest(self.cfg, r), r.get("sig")))
-
-    @staticmethod
-    def _updated(view: Mapping[str, dict], reports: Iterable[dict]) -> Dict[str, dict]:
-        view = dict(view)
-        for r in reports:
-            view[r["substation"]] = {"version": r["version"], "states": r["states"]}
-        return view
-
-    def propose(self, node, height: int, rnd: int, t: float) -> dict:
-        view, counts = self.chain_state(node)
-        mine = self.reports_of(node.name)
-        reports = [mine[s] for s in sorted(mine) if s in view and mine[s]["version"] > view[s]["version"]]
-        slot = node.com.slot_of(t)
-        return {"reports": reports, "commands": self.commands(self._updated(view, reports), counts, slot)}
-
-    def valid(self, node, block) -> bool:
-        payload = block.get("payload")
-        if not isinstance(payload, dict) or set(payload) != {"reports", "commands"}:
-            return False
-        reports = payload["reports"]
-        if not isinstance(reports, list) or not all(self.authentic(r) for r in reports):
-            return False
-        subs = [r["substation"] for r in reports]
-        if subs != sorted(set(subs)):                    # at most one report per substation, in order
-            return False
-        view, counts = self.chain_state(node)
-        if any(r["version"] <= view[r["substation"]]["version"] for r in reports):
-            return False                                 # only newer reports: no rolling back a substation's state
-        return payload["commands"] == self.commands(self._updated(view, reports), counts, block["slot"])
+    def block_commands(self, view, counts, slot, extras) -> List[dict]:
+        return self.commands(view, counts, slot)
 
 
-class Substation:
-    """A substation's end of the last hop: its verifier, plus buffering, sync requests and state reports."""
+class PolicyDispatch(ChainDispatch):
+    """policy.decide on the agreed state: C and D's dispatch.
 
-    def __init__(self, hop: "LastHop", verifier: Verifier):
-        self.hop, self.v, self.name = hop, verifier, verifier.name
-        self.future: Dict[int, tuple] = {}         # height -> (block, proof, delivery, sender) ahead of the tip
-        self.sync_from, self.sync_wait, self.sync_next, self.n_sync = 0, SYNC_RETRY_S, 0.0, 0
-        self.n_reports = 0
-        self.report_pending = False
+    EXTRA "measurements": the slot's measured supply and planning demand
+    (measure(slot), power.Island.measure). Every validator reads the same
+    values, a simplification: real validators would each read the island's
+    measurements and must agree on one. A block with other measurements is
+    invalid. The view keeps each substation's whole report but the signature
+    (policy.feeder_inputs reads version, last_seq and the per-feeder
+    bookkeeping); commands are policy.commands_for the targets that
+    policy.decide gives for the view and the measurements."""
+    EXTRA = ("measurements",)
+    FULL_REPORTS = True
 
-    # ---------- blocks ----------
-    def on_message(self, msg: dict, t: float) -> None:
-        typ = msg.get("type")
-        if typ == "deliver":
-            self.receive(msg.get("block"), msg.get("proof"), msg.get("delivery", ""), msg.get("sender", ""), t)
-        elif typ == "sync":
-            for item in msg.get("entries") or ():
-                if not (isinstance(item, (list, tuple)) and len(item) == 2 and isinstance(item[0], dict)):
-                    continue
-                h = item[0].get("height")
-                if type(h) is int and h <= self.v.tip_height and "order" in self.v.checks:
-                    self.v.stats["sync_known"] += 1     # replies overlap: heights already applied
-                    continue
-                self.receive(item[0], item[1], msg.get("delivery", ""), msg.get("sender", ""), t)
+    def __init__(self, cfg, specs: Sequence[FeederSpec], sub_keys: KeyRing, measure: Callable[[int], dict],
+                 reports_of: Optional[Callable[[str], Mapping[str, dict]]] = None):
+        self.specs = list(specs)
+        super().__init__(cfg, by_substation(self.specs), sub_keys, reports_of)
+        self.measure = measure
+        self._start = start_view(self.specs)
 
-    def receive(self, block, proof, delivery: str, sender: str, t: float) -> None:
-        before = self.v.version
-        status = self.v.on_block(block, proof, t, delivery, sender)
-        if status == "gap":
-            if block["height"] not in self.future and len(self.future) < FUTURE_CAP:
-                self.future[block["height"]] = (block, proof, delivery, sender)
-            self.request_sync(t)
-        elif status == "applied":
-            self._drain(t)
-        if self.v.version != before:
-            self.report_soon(t)
+    def start_state(self) -> Dict[str, dict]:
+        return self._start
 
-    def _drain(self, t: float) -> None:
-        while self.future:
-            nxt = self.v.tip_height + 1
-            for h in [h for h in self.future if h < nxt]:
-                del self.future[h]
-            item = self.future.pop(nxt, None)
-            if item is None:
-                break
-            self.v.on_block(item[0], item[1], t, item[2], item[3])
-            if self.v.tip_height < nxt:                  # rejected: wait for a good copy
-                break
-        if self.future:
-            self.request_sync(t)
+    def entry(self, report: dict) -> dict:
+        return {k: v for k, v in report.items() if k != "sig"}
 
-    def request_sync(self, t: float) -> None:
-        nxt = self.v.tip_height + 1
-        if nxt == self.sync_from and t < self.sync_next - 1e-9:
-            return
-        if nxt != self.sync_from:
-            self.sync_from, self.sync_wait = nxt, SYNC_RETRY_S
-        else:
-            self.sync_wait = min(2.0 * self.sync_wait, SYNC_RETRY_MAX_S)
-        self.sync_next = t + self.sync_wait
-        self.n_sync += 1
-        self.hop.request_sync(self, nxt, self.n_sync, t)
-        self.hop.timer(self.sync_next, self._sync_check, nxt)
+    def extras(self, slot: int) -> dict:
+        return {"measurements": self.measure(slot)}
 
-    def _sync_check(self, nxt: int, t: float) -> None:
-        if self.v.tip_height < nxt and self.future:      # still missing, and a later block is known
-            self.request_sync(t)
-
-    # ---------- state reports ----------
-    def report_soon(self, t: float) -> None:
-        if not self.report_pending:
-            self.report_pending = True
-            self.hop.timer(t + REPORT_DELAY_S, self._report_now)
-
-    def _report_now(self, t: float) -> None:
-        self.report_pending = False
-        self.send_report(t)
-
-    def heartbeat(self, t: float) -> None:
-        self.send_report(t)
-        self.hop.timer(t + self.hop.cfg.dispatch_period_s, self.heartbeat)
-
-    def send_report(self, t: float) -> None:
-        self.n_reports += 1
-        r = {"substation": self.name, "version": self.v.version, "states": dict(self.v.feeders)}
-        r["sig"] = self.hop.sub_keys.sign(self.name, report_digest(self.hop.cfg, r))
-        self.hop.send_report(self, r, self.n_reports, t)
+    def block_commands(self, view, counts, slot, extras) -> List[dict]:
+        targets = decide(self.cfg, self.specs, view, extras["measurements"], slot)
+        return commands_for(self.cfg, targets, view, counts, slot)
 
 
-class LastHop:
-    """One island: the committee, its substations and the network between them.
+class LastHop(Link):
+    """One island's decision path in C and D: the committee, its substations and the network between them.
 
+    dispatch(sub_keys, reports_of) -> ChainDispatch builds what the committee
+    decides (default: RotatingDispatch with `groups`); verifier_kw are extra
+    Verifier arguments (sim.py: the island's interlock and switch hooks).
     Also the `sim` that fault hooks receive: hop.com is the committee, hop.subs
     the substations, hop.inject() sends as an attacker."""
 
@@ -255,24 +250,29 @@ class LastHop:
                  log: Optional[EventLog] = None, fault: Optional[Fault] = None,
                  checks: Iterable[str] = ALL_CHECKS,
                  clock_offset_s: Union[float, Mapping[str, float]] = 0.0, groups: int = 3,
-                 keys: Optional[KeyRing] = None):
+                 keys: Optional[KeyRing] = None,
+                 dispatch: Optional[Callable[[KeyRing, Callable], ChainDispatch]] = None,
+                 verifier_kw: Optional[Mapping] = None):
         self.cfg, self.kernel, self.net = cfg, kernel, net
         self.log = log if log is not None else EventLog()
         self.fault = fault if fault is not None else Honest()
         checks = frozenset(checks)
         self.sub_keys = KeyRing(sorted(feeders), cfg.seed)       # substations' own keys, apart from validators'
         self.reports: Dict[str, Dict[str, dict]] = defaultdict(dict)   # validator -> substation -> newest report
-        self.dispatch = RotatingDispatch(cfg, feeders, self.sub_keys, groups, reports_of=lambda v: self.reports[v])
+        reports_of = lambda v: self.reports[v]  # noqa: E731
+        self.dispatch = (dispatch(self.sub_keys, reports_of) if dispatch is not None else
+                         RotatingDispatch(cfg, feeders, self.sub_keys, groups, reports_of=reports_of))
         self.com = Committee(cfg, kernel, net, keys=keys, log=self.log, fault=self.fault, sim=self,
                              propose_fn=self.dispatch.propose, valid_fn=self.dispatch.valid,
                              on_decide=self.forward)
         if set(feeders) & set(self.com.names):
             raise ValueError("substation and validator names must differ")
         offsets = clock_offset_s if isinstance(clock_offset_s, Mapping) else {s: clock_offset_s for s in feeders}
+        start = self.dispatch.start_state()
         self.subs: Dict[str, Substation] = {
-            s: Substation(self, Verifier(cfg, s, {f: "on" for f in fs}, keys=self.com.keys, checks=checks,
-                                         clock_offset_s=offsets.get(s, 0.0), log=self.log))
-            for s, fs in sorted(feeders.items())}
+            s: Substation(self, Verifier(cfg, s, dict(start[s]["states"]), keys=self.com.keys, checks=checks,
+                                         clock_offset_s=offsets.get(s, 0.0), log=self.log, **(verifier_kw or {})))
+            for s in sorted(feeders)}
         self.issued: set = set()
         self.stats: Counter = Counter()
 
@@ -282,60 +282,25 @@ class LastHop:
         for s in self.subs.values():
             self.timer(t + self.cfg.dispatch_period_s / 2.0, s.heartbeat)
 
-    def timer(self, t: float, fn: Callable, *args) -> None:
-        """Call fn(*args, now) at time t."""
-        self.kernel.schedule(t, PRIO_MESSAGE, self._fire, fn, args)
-
-    def _fire(self, fn: Callable, args: tuple) -> None:
-        fn(*args, self.kernel.now)
-
-    def up(self, node: str, t: float) -> bool:
-        return self.fault.node_up(self, node, t)
-
     # ---------- validators -> substations ----------
     def forward(self, node, header: dict, proof: dict, t: float) -> None:
         """on_decide: a validator committed a block; it sends block and proof to every substation."""
         h = header["height"]
         if h not in self.issued:
             self.issued.add(h)
-            for c in header["payload"].get("commands", ()):
+            payload = header["payload"]
+            cmds = payload.get("commands", ())
+            data = {"height": h, "slot": header["slot"], "commands": len(cmds), "reports": len(payload["reports"])}
+            if "measurements" in payload:
+                data["supply_kw"] = payload["measurements"]["supply_kw"]
+            self.log.append(t, EventKind.DECISION, "committee", data)
+            for c in cmds:
                 self.log.append(t, EventKind.COMMAND_ISSUED, "committee", {"height": h, **c})
         block = {k: v for k, v in header.items() if k != "hash"}
         for s in self.subs:
             msg = {"type": "deliver", "block": block, "proof": proof, "sender": node.name,
                    "delivery": f"deliver:{h}:{node.name}:{s}"}
             self.to_substation(node.name, s, msg, f"deliver:{h}:{node.name}", t)
-
-    def to_substation(self, src: str, dst: str, msg: dict, msg_id: str, t: float) -> None:
-        if not self.up(src, t):
-            return
-        self.stats["to_substations"] += 1
-        if not self.fault.last_hop(self, src, dst, msg, t):
-            self.stats["withheld"] += 1
-            return
-        arrival = self.net.deliver(msg_id, src, dst, t)
-        if arrival is None:
-            self.stats["lost"] += 1
-        else:
-            self.kernel.schedule(arrival, PRIO_MESSAGE, self._at_substation, dst, msg)
-
-    def _at_substation(self, dst: str, msg: dict) -> None:
-        t = self.kernel.now
-        if self.up(dst, t):
-            self.subs[dst].on_message(msg, t)
-        else:
-            self.stats["dropped_down"] += 1
-
-    def inject(self, dst: str, msg: dict, t: float, info: Optional[dict] = None) -> None:
-        """An attacker on substation dst's link sends msg at time t (never lost); logged as truth."""
-        self.timer(t, self._inject_now, dst, msg, dict(info or {}))
-
-    def _inject_now(self, dst: str, msg: dict, info: dict, t: float) -> None:
-        self.stats["injected"] += 1
-        self.log.append(t, EventKind.FAULT_ACTION, "attacker",
-                        {"action": "inject", **info, "substation": dst, "delivery": msg.get("delivery")}, "truth")
-        arrival = t + self.net.delay(f"inject:{msg.get('delivery')}", "attacker", dst)
-        self.kernel.schedule(arrival, PRIO_MESSAGE, self._at_substation, dst, msg)
 
     # ---------- substations -> validators ----------
     def to_validator(self, src: str, dst: str, msg: dict, msg_id: str, t: float) -> None:

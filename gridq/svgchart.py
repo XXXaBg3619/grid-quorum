@@ -18,7 +18,7 @@ chart(panels, ...) draws one or more panels side by side with shared axes:
   panel = {"title": str,
            "series": [{"label", "slot", "points": [(x, y, tip)], "band": [(x, lo, hi)] | None,
                        "dash": bool, "end_label": str | None}],
-           "refs":   [{"label", "points": [(x, y)], "label_at": "auto" | "start" | "end"}],
+           "refs":   [{"label", "points": [(x, y)], "label_at": "auto" | "start" | "end" | "none"}],
            "extra":  [{"x", "y", "slot", "tip"}]}           # hollow diamonds
 """
 from __future__ import annotations
@@ -204,6 +204,8 @@ def chart(panels: List[dict], *, title: str, subtitle: str = "", legend: Sequenc
         for r in p.get("refs", []):
             pts = [(sx(i, x), sy(y)) for x, y in r["points"]]
             out.append(f'<path class="ref" d="{_path(pts)}"><title>{escape(r["label"])}</title></path>')
+            if r.get("label_at") == "none":              # named in the legend instead
+                continue
             tw = text_width(r["label"], 11)
             cands = []
             for side in ("start", "end"):

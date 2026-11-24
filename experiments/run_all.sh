@@ -18,6 +18,9 @@ python3 -m unittest discover -s tests -q
 mkdir -p "$OUT"
 run experiments/check_consensus.py ${QUICK:+--quick} --out "$OUT/check_consensus"
 
+# Step 3 check: the four architectures on one island with the power model (question 22); stops the run if it fails.
+run experiments/check_island.py ${QUICK:+--quick} --out "$OUT/check_island"
+
 # The six experiments of the design doc; a script is picked up as soon as it exists.
 for exp in exp1_equivocation exp2_offline exp3_partition exp4_replay exp5_joint_overload exp6_common_cause; do
   if [[ -f "experiments/$exp.py" ]]; then
