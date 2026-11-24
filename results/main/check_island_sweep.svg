@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 1068 438" width="1068" height="438" role="img" aria-labelledby="t d">
+<style>svg.viz{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;font-family:system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif}@media (prefers-color-scheme: dark){svg.viz{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;}}.bg{fill:var(--surface)}.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1}.ref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;fill:none}.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dash{stroke-dasharray:6 4}.mk{stroke:var(--surface);stroke-width:2}.hollow{fill:var(--surface);stroke-width:2}.hit{fill:transparent;pointer-events:all}.hit:hover+.mk,.mk:hover{stroke:var(--ink)}.l1{stroke:var(--s1)}.f1{fill:var(--s1)}.b1{fill:var(--s1);fill-opacity:.14}.l2{stroke:var(--s2)}.f2{fill:var(--s2)}.b2{fill:var(--s2);fill-opacity:.14}.l3{stroke:var(--s3)}.f3{fill:var(--s3)}.b3{fill:var(--s3);fill-opacity:.14}.l4{stroke:var(--s4)}.f4{fill:var(--s4)}.b4{fill:var(--s4);fill-opacity:.14}text{font-size:12px}.title{font-size:15px;font-weight:600}.ptitle{font-size:13px;font-weight:600}.small{font-size:11px}</style>
+<title id="t">打擊後只剩多少電：固定備案在低於假設時超載，委員會重新分配</title><desc id="d">失去兩個站點、打擊後供電從 20% 到 50% 時，各架構的低頻卸載時槽比例、全黑時間和關鍵饋線供電時間</desc>
+<rect class="bg" x="0" y="0" width="1068" height="438" rx="8"/>
+<text class="t1 title" x="72" y="26">打擊後只剩多少電：固定備案在低於假設時超載，委員會重新分配</text>
+<text class="t2" x="72" y="46">失去兩個站點（A、B 兩個調度中心都沒了，C、D 少兩個驗證者），打擊後供電固定在峰值的某個比例；每點 12 次、24 小時，帶狀為 95% 信賴區間</text>
+<text class="t2" x="72" y="64">20% 時傍晚的關鍵負載超過供電：A 只能維持現狀、B 的規則不准切關鍵饋線，低頻卸載切不到它們，孤島全黑（右圖 20% 處 A 與 B 的點重疊）</text>
+<path class="line l1" d="M72,91 h22"/><circle class="mk f1" cx="83" cy="91" r="4"/>
+<text class="t2" x="100" y="95">A 中央＋備援</text>
+<path class="line l2" d="M195.92000000000002,91 h22"/><circle class="mk f2" cx="206.92000000000002" cy="91" r="4"/>
+<text class="t2" x="223.92000000000002" y="95">B 中央＋在地檢查</text>
+<path class="line l3" d="M343.84000000000003,91 h22"/><circle class="mk f3" cx="354.84000000000003" cy="91" r="4"/>
+<text class="t2" x="371.84000000000003" y="95">C、D 委員會（兩者相同）</text>
+<path class="ref" d="M534.72,91 h22"/>
+<text class="t2" x="562.72" y="95">B 的預簽輪停表假設的供電（40%）</text>
+<text class="t1 ptitle" x="72.0" y="116">打擊後有低頻卸載的調度時槽</text>
+<line class="grid" x1="72.0" x2="372.0" y1="388.0" y2="388.0"/>
+<text class="tm" x="64.0" y="392.0" text-anchor="end">0%</text>
+<line class="grid" x1="72.0" x2="372.0" y1="336.0" y2="336.0"/>
+<text class="tm" x="64.0" y="340.0" text-anchor="end">20%</text>
+<line class="grid" x1="72.0" x2="372.0" y1="284.0" y2="284.0"/>
+<text class="tm" x="64.0" y="288.0" text-anchor="end">40%</text>
+<line class="grid" x1="72.0" x2="372.0" y1="232.0" y2="232.0"/>
+<text class="tm" x="64.0" y="236.0" text-anchor="end">60%</text>
+<line class="grid" x1="72.0" x2="372.0" y1="180.0" y2="180.0"/>
+<text class="tm" x="64.0" y="184.0" text-anchor="end">80%</text>
+<line class="grid" x1="72.0" x2="372.0" y1="128.0" y2="128.0"/>
+<text class="tm" x="64.0" y="132.0" text-anchor="end">100%</text>
+<line class="axis" x1="72.0" x2="372.0" y1="388" y2="388"/>
+<line class="axis" x1="72.0" x2="72.0" y1="388" y2="392"/><text class="tm" x="72.0" y="406" text-anchor="middle">20%</text>
+<line class="axis" x1="122.0" x2="122.0" y1="388" y2="392"/><text class="tm" x="122.0" y="406" text-anchor="middle">25%</text>
+<line class="axis" x1="172.0" x2="172.0" y1="388" y2="392"/><text class="tm" x="172.0" y="406" text-anchor="middle">30%</text>
+<line class="axis" x1="222.0" x2="222.0" y1="388" y2="392"/><text class="tm" x="222.0" y="406" text-anchor="middle">35%</text>
+<line class="axis" x1="272.0" x2="272.0" y1="388" y2="392"/><text class="tm" x="272.0" y="406" text-anchor="middle">40%</text>
+<line class="axis" x1="322.0" x2="322.0" y1="388" y2="392"/><text class="tm" x="322.0" y="406" text-anchor="middle">45%</text>
+<line class="axis" x1="372.0" x2="372.0" y1="388" y2="392"/><text class="tm" x="372.0" y="406" text-anchor="middle">50%</text>
+<text class="t2" x="222.0" y="428" text-anchor="middle">打擊後的供電（峰值需求的比例）</text>
+<path class="b1" d="M72.0,387.7 L122.0,386.9 L172.0,385.9 L222.0,385.1 L272.0,384.9 L322.0,384.9 L372.0,384.9 L372.0,385.0 L322.0,385.0 L272.0,385.0 L222.0,385.9 L172.0,386.0 L122.0,387.0 L72.0,388.0 Z"/>
+<path class="b2" d="M72.0,193.4 L122.0,148.8 L172.0,276.9 L222.0,361.6 L272.0,388.0 L322.0,388.0 L372.0,388.0 L372.0,388.0 L322.0,388.0 L272.0,388.0 L222.0,364.9 L172.0,285.1 L122.0,154.0 L72.0,198.8 Z"/>
+<path class="b3" d="M72.0,388.0 L122.0,388.0 L172.0,388.0 L222.0,388.0 L272.0,388.0 L322.0,388.0 L372.0,388.0 L372.0,388.0 L322.0,388.0 L272.0,388.0 L222.0,388.0 L172.0,388.0 L122.0,388.0 L72.0,388.0 Z"/>
+<path class="ref" d="M272.0,388.0 L272.0,128.0"><title>B 的預簽輪停表假設的供電（40%）</title></path>
+<path class="line l1" d="M72.0,387.9 L122.0,387.0 L172.0,385.9 L222.0,385.5 L272.0,384.9 L322.0,384.9 L372.0,384.9"/>
+<circle class="hit" cx="72.0" cy="387.9" r="11"><title>A 中央＋備援，打擊後供電 20%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle><circle class="mk f1" cx="72.0" cy="387.9" r="4.5"><title>A 中央＋備援，打擊後供電 20%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="122.0" cy="387.0" r="11"><title>A 中央＋備援，打擊後供電 25%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f1" cx="122.0" cy="387.0" r="4.5"><title>A 中央＋備援，打擊後供電 25%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="172.0" cy="385.9" r="11"><title>A 中央＋備援，打擊後供電 30%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f1" cx="172.0" cy="385.9" r="4.5"><title>A 中央＋備援，打擊後供電 30%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="222.0" cy="385.5" r="11"><title>A 中央＋備援，打擊後供電 35%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f1" cx="222.0" cy="385.5" r="4.5"><title>A 中央＋備援，打擊後供電 35%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="272.0" cy="384.9" r="11"><title>A 中央＋備援，打擊後供電 40%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f1" cx="272.0" cy="384.9" r="4.5"><title>A 中央＋備援，打擊後供電 40%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="322.0" cy="384.9" r="11"><title>A 中央＋備援，打擊後供電 45%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle><circle class="mk f1" cx="322.0" cy="384.9" r="4.5"><title>A 中央＋備援，打擊後供電 45%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle>
+<circle class="hit" cx="372.0" cy="384.9" r="11"><title>A 中央＋備援，打擊後供電 50%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle><circle class="mk f1" cx="372.0" cy="384.9" r="4.5"><title>A 中央＋備援，打擊後供電 50%：打擊後有低頻卸載的調度時槽 1%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle>
+<path class="line l2" d="M72.0,196.1 L122.0,151.4 L172.0,281.0 L222.0,363.2 L272.0,388.0 L322.0,388.0 L372.0,388.0"/>
+<circle class="hit" cx="72.0" cy="196.1" r="11"><title>B 中央＋在地檢查，打擊後供電 20%：打擊後有低頻卸載的調度時槽 74%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle><circle class="mk f2" cx="72.0" cy="196.1" r="4.5"><title>B 中央＋在地檢查，打擊後供電 20%：打擊後有低頻卸載的調度時槽 74%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="122.0" cy="151.4" r="11"><title>B 中央＋在地檢查，打擊後供電 25%：打擊後有低頻卸載的調度時槽 91%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f2" cx="122.0" cy="151.4" r="4.5"><title>B 中央＋在地檢查，打擊後供電 25%：打擊後有低頻卸載的調度時槽 91%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="172.0" cy="281.0" r="11"><title>B 中央＋在地檢查，打擊後供電 30%：打擊後有低頻卸載的調度時槽 41%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle><circle class="mk f2" cx="172.0" cy="281.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 30%：打擊後有低頻卸載的調度時槽 41%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle>
+<circle class="hit" cx="222.0" cy="363.2" r="11"><title>B 中央＋在地檢查，打擊後供電 35%：打擊後有低頻卸載的調度時槽 10%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f2" cx="222.0" cy="363.2" r="4.5"><title>B 中央＋在地檢查，打擊後供電 35%：打擊後有低頻卸載的調度時槽 10%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="272.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 40%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle><circle class="mk f2" cx="272.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 40%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle>
+<circle class="hit" cx="322.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 45%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="322.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 45%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="372.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 50%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="372.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 50%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<path class="line l3" d="M72.0,388.0 L122.0,388.0 L172.0,388.0 L222.0,388.0 L272.0,388.0 L322.0,388.0 L372.0,388.0"/>
+<circle class="hit" cx="72.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 20%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle><circle class="mk f3" cx="72.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 20%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle>
+<circle class="hit" cx="122.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 25%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f3" cx="122.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 25%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="172.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 30%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle><circle class="mk f3" cx="172.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 30%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle>
+<circle class="hit" cx="222.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 35%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle><circle class="mk f3" cx="222.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 35%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle>
+<circle class="hit" cx="272.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 40%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f3" cx="272.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 40%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="322.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 45%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle><circle class="mk f3" cx="322.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 45%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle>
+<circle class="hit" cx="372.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 50%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle><circle class="mk f3" cx="372.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 50%：打擊後有低頻卸載的調度時槽 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle>
+<text class="t1 ptitle" x="408.0" y="116">孤島全黑的時間</text>
+<line class="grid" x1="408.0" x2="708.0" y1="388.0" y2="388.0"/>
+<line class="grid" x1="408.0" x2="708.0" y1="336.0" y2="336.0"/>
+<line class="grid" x1="408.0" x2="708.0" y1="284.0" y2="284.0"/>
+<line class="grid" x1="408.0" x2="708.0" y1="232.0" y2="232.0"/>
+<line class="grid" x1="408.0" x2="708.0" y1="180.0" y2="180.0"/>
+<line class="grid" x1="408.0" x2="708.0" y1="128.0" y2="128.0"/>
+<line class="axis" x1="408.0" x2="708.0" y1="388" y2="388"/>
+<line class="axis" x1="408.0" x2="408.0" y1="388" y2="392"/><text class="tm" x="408.0" y="406" text-anchor="middle">20%</text>
+<line class="axis" x1="458.0" x2="458.0" y1="388" y2="392"/><text class="tm" x="458.0" y="406" text-anchor="middle">25%</text>
+<line class="axis" x1="508.0" x2="508.0" y1="388" y2="392"/><text class="tm" x="508.0" y="406" text-anchor="middle">30%</text>
+<line class="axis" x1="558.0" x2="558.0" y1="388" y2="392"/><text class="tm" x="558.0" y="406" text-anchor="middle">35%</text>
+<line class="axis" x1="608.0" x2="608.0" y1="388" y2="392"/><text class="tm" x="608.0" y="406" text-anchor="middle">40%</text>
+<line class="axis" x1="658.0" x2="658.0" y1="388" y2="392"/><text class="tm" x="658.0" y="406" text-anchor="middle">45%</text>
+<line class="axis" x1="708.0" x2="708.0" y1="388" y2="392"/><text class="tm" x="708.0" y="406" text-anchor="middle">50%</text>
+<text class="t2" x="558.0" y="428" text-anchor="middle">打擊後的供電（峰值需求的比例）</text>
+<path class="b1" d="M408.0,377.2 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0 L708.0,388.0 L658.0,388.0 L608.0,388.0 L558.0,388.0 L508.0,388.0 L458.0,388.0 L408.0,377.2 Z"/>
+<path class="b2" d="M408.0,328.2 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0 L708.0,388.0 L658.0,388.0 L608.0,388.0 L558.0,388.0 L508.0,388.0 L458.0,388.0 L408.0,332.3 Z"/>
+<path class="b3" d="M408.0,388.0 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0 L708.0,388.0 L658.0,388.0 L608.0,388.0 L558.0,388.0 L508.0,388.0 L458.0,388.0 L408.0,388.0 Z"/>
+<path class="ref" d="M608.0,388.0 L608.0,128.0"><title>B 的預簽輪停表假設的供電（40%）</title></path>
+<path class="line l1" d="M408.0,377.2 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0"/>
+<circle class="hit" cx="408.0" cy="377.2" r="11"><title>A 中央＋備援，打擊後供電 20%：孤島全黑的時間 4%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle><circle class="mk f1" cx="408.0" cy="377.2" r="4.5"><title>A 中央＋備援，打擊後供電 20%：孤島全黑的時間 4%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="458.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f1" cx="458.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="508.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f1" cx="508.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="558.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f1" cx="558.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="608.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f1" cx="608.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="658.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle><circle class="mk f1" cx="658.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle>
+<circle class="hit" cx="708.0" cy="388.0" r="11"><title>A 中央＋備援，打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle><circle class="mk f1" cx="708.0" cy="388.0" r="4.5"><title>A 中央＋備援，打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle>
+<path class="line l2" d="M408.0,330.2 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0"/>
+<circle class="hit" cx="408.0" cy="330.2" r="11"><title>B 中央＋在地檢查，打擊後供電 20%：孤島全黑的時間 22%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle><circle class="mk f2" cx="408.0" cy="330.2" r="4.5"><title>B 中央＋在地檢查，打擊後供電 20%：孤島全黑的時間 22%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="458.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f2" cx="458.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="508.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle><circle class="mk f2" cx="508.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle>
+<circle class="hit" cx="558.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f2" cx="558.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="608.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle><circle class="mk f2" cx="608.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle>
+<circle class="hit" cx="658.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="658.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="708.0" cy="388.0" r="11"><title>B 中央＋在地檢查，打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="708.0" cy="388.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<path class="line l3" d="M408.0,388.0 L458.0,388.0 L508.0,388.0 L558.0,388.0 L608.0,388.0 L658.0,388.0 L708.0,388.0"/>
+<circle class="hit" cx="408.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 20%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle><circle class="mk f3" cx="408.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 20%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle>
+<circle class="hit" cx="458.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f3" cx="458.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 25%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="508.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle><circle class="mk f3" cx="508.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 30%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle>
+<circle class="hit" cx="558.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle><circle class="mk f3" cx="558.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 35%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle>
+<circle class="hit" cx="608.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f3" cx="608.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 40%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="658.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle><circle class="mk f3" cx="658.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 45%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle>
+<circle class="hit" cx="708.0" cy="388.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle><circle class="mk f3" cx="708.0" cy="388.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 50%：孤島全黑的時間 0%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle>
+<text class="t1 ptitle" x="744.0" y="116">關鍵饋線的供電時間</text>
+<line class="grid" x1="744.0" x2="1044.0" y1="388.0" y2="388.0"/>
+<line class="grid" x1="744.0" x2="1044.0" y1="336.0" y2="336.0"/>
+<line class="grid" x1="744.0" x2="1044.0" y1="284.0" y2="284.0"/>
+<line class="grid" x1="744.0" x2="1044.0" y1="232.0" y2="232.0"/>
+<line class="grid" x1="744.0" x2="1044.0" y1="180.0" y2="180.0"/>
+<line class="grid" x1="744.0" x2="1044.0" y1="128.0" y2="128.0"/>
+<line class="axis" x1="744.0" x2="1044.0" y1="388" y2="388"/>
+<line class="axis" x1="744.0" x2="744.0" y1="388" y2="392"/><text class="tm" x="744.0" y="406" text-anchor="middle">20%</text>
+<line class="axis" x1="794.0" x2="794.0" y1="388" y2="392"/><text class="tm" x="794.0" y="406" text-anchor="middle">25%</text>
+<line class="axis" x1="844.0" x2="844.0" y1="388" y2="392"/><text class="tm" x="844.0" y="406" text-anchor="middle">30%</text>
+<line class="axis" x1="894.0" x2="894.0" y1="388" y2="392"/><text class="tm" x="894.0" y="406" text-anchor="middle">35%</text>
+<line class="axis" x1="944.0" x2="944.0" y1="388" y2="392"/><text class="tm" x="944.0" y="406" text-anchor="middle">40%</text>
+<line class="axis" x1="994.0" x2="994.0" y1="388" y2="392"/><text class="tm" x="994.0" y="406" text-anchor="middle">45%</text>
+<line class="axis" x1="1044.0" x2="1044.0" y1="388" y2="392"/><text class="tm" x="1044.0" y="406" text-anchor="middle">50%</text>
+<text class="t2" x="894.0" y="428" text-anchor="middle">打擊後的供電（峰值需求的比例）</text>
+<path class="b1" d="M744.0,187.5 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0 L1044.0,128.0 L994.0,128.0 L944.0,128.0 L894.0,128.0 L844.0,128.0 L794.0,128.0 L744.0,192.1 Z"/>
+<path class="b2" d="M744.0,187.4 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0 L1044.0,128.0 L994.0,128.0 L944.0,128.0 L894.0,128.0 L844.0,128.0 L794.0,128.0 L744.0,192.1 Z"/>
+<path class="b3" d="M744.0,143.8 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0 L1044.0,128.0 L994.0,128.0 L944.0,128.0 L894.0,128.0 L844.0,128.0 L794.0,128.0 L744.0,143.8 Z"/>
+<path class="ref" d="M944.0,388.0 L944.0,128.0"><title>B 的預簽輪停表假設的供電（40%）</title></path>
+<path class="line l1" d="M744.0,189.8 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0"/>
+<circle class="hit" cx="744.0" cy="189.8" r="11"><title>A 中央＋備援，打擊後供電 20%：關鍵饋線的供電時間 76%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle><circle class="mk f1" cx="744.0" cy="189.8" r="4.5"><title>A 中央＋備援，打擊後供電 20%：關鍵饋線的供電時間 76%；低頻卸載每次 0.1 次、全黑 1.0 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="794.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f1" cx="794.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 1.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="844.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f1" cx="844.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 2.0 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="894.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f1" cx="894.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 2.4 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="944.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f1" cx="944.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="994.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle><circle class="mk f1" cx="994.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 49%</title></circle>
+<circle class="hit" cx="1044.0" cy="128.0" r="11"><title>A 中央＋備援，打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle><circle class="mk f1" cx="1044.0" cy="128.0" r="4.5"><title>A 中央＋備援，打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 3.0 次、全黑 0.0 小時、用戶用電滿足率 60%</title></circle>
+<path class="line l2" d="M744.0,189.8 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0"/>
+<circle class="hit" cx="744.0" cy="189.8" r="11"><title>B 中央＋在地檢查，打擊後供電 20%：關鍵饋線的供電時間 76%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle><circle class="mk f2" cx="744.0" cy="189.8" r="4.5"><title>B 中央＋在地檢查，打擊後供電 20%：關鍵饋線的供電時間 76%；低頻卸載每次 186.3 次、全黑 5.3 小時、用戶用電滿足率 21%</title></circle>
+<circle class="hit" cx="794.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle><circle class="mk f2" cx="794.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 229.7 次、全黑 0.0 小時、用戶用電滿足率 30%</title></circle>
+<circle class="hit" cx="844.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle><circle class="mk f2" cx="844.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 104.0 次、全黑 0.0 小時、用戶用電滿足率 36%</title></circle>
+<circle class="hit" cx="894.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle><circle class="mk f2" cx="894.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 24.1 次、全黑 0.0 小時、用戶用電滿足率 39%</title></circle>
+<circle class="hit" cx="944.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle><circle class="mk f2" cx="944.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 40%</title></circle>
+<circle class="hit" cx="994.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="994.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="1044.0" cy="128.0" r="11"><title>B 中央＋在地檢查，打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f2" cx="1044.0" cy="128.0" r="4.5"><title>B 中央＋在地檢查，打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<path class="line l3" d="M744.0,143.8 L794.0,128.0 L844.0,128.0 L894.0,128.0 L944.0,128.0 L994.0,128.0 L1044.0,128.0"/>
+<circle class="hit" cx="744.0" cy="143.8" r="11"><title>C、D 委員會（兩者相同），打擊後供電 20%：關鍵饋線的供電時間 94%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle><circle class="mk f3" cx="744.0" cy="143.8" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 20%：關鍵饋線的供電時間 94%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 26%</title></circle>
+<circle class="hit" cx="794.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle><circle class="mk f3" cx="794.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 25%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 28%</title></circle>
+<circle class="hit" cx="844.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle><circle class="mk f3" cx="844.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 30%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 34%</title></circle>
+<circle class="hit" cx="894.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle><circle class="mk f3" cx="894.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 35%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 37%</title></circle>
+<circle class="hit" cx="944.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle><circle class="mk f3" cx="944.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 40%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 41%</title></circle>
+<circle class="hit" cx="994.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle><circle class="mk f3" cx="994.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 45%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 44%</title></circle>
+<circle class="hit" cx="1044.0" cy="128.0" r="11"><title>C、D 委員會（兩者相同），打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle><circle class="mk f3" cx="1044.0" cy="128.0" r="4.5"><title>C、D 委員會（兩者相同），打擊後供電 50%：關鍵饋線的供電時間 100%；低頻卸載每次 0.0 次、全黑 0.0 小時、用戶用電滿足率 50%</title></circle>
+<text class="t2" transform="translate(16 258.0) rotate(-90)" text-anchor="middle">比例</text>
+</svg>
