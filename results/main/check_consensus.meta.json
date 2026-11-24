@@ -1,5 +1,5 @@
 {
-  "git_commit": "080e293",
+  "git_commit": "49deb9b-dirty",
   "experiment": "check_consensus",
   "step": "docs/DESIGN.md section 7, step 1",
   "config": {

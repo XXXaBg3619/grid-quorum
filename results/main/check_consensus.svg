@@ -6,10 +6,10 @@
 <text class="t2" x="72" y="46">誠實驗證者，每則訊息各自以機率 p 遺失、不重送；每點約 2000 個高度，帶狀為 95% 信賴區間</text>
 <path class="line l1" d="M72,73 h22"/><circle class="mk f1" cx="83" cy="73" r="4"/>
 <text class="t2" x="100" y="77">模擬 n = 4（Q = 3）</text>
-<path class="line l2" d="M246.55999999999997,73 h22"/><circle class="mk f2" cx="257.55999999999995" cy="73" r="4"/>
-<text class="t2" x="274.55999999999995" y="77">模擬 n = 7（Q = 5）</text>
-<path class="ref" d="M421.11999999999995,73 h22"/>
-<text class="t2" x="449.11999999999995" y="77">理論值 round_success_prob</text>
+<path class="line l2" d="M246.56,73 h22"/><circle class="mk f2" cx="257.56" cy="73" r="4"/>
+<text class="t2" x="274.56" y="77">模擬 n = 7（Q = 5）</text>
+<path class="ref" d="M421.12,73 h22"/>
+<text class="t2" x="449.12" y="77">理論值 round_success_prob</text>
 <text class="t1 ptitle" x="72.0" y="80"></text>
 <line class="grid" x1="72.0" x2="632.0" y1="352.0" y2="352.0"/>
 <text class="tm" x="64.0" y="356.0" text-anchor="end">0%</text>
