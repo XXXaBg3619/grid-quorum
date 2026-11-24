@@ -1,0 +1,37 @@
+variant,variant_label,checks,clock_offset_s,attack,attack_label,runs,replay_deliveries,replay_commands,replay_accepted,replay_accept_share,replay_switches,rejected_stale_seq,rejected_state_mismatch,rejected_expired,ignored_duplicate,committed_commands,executed_commands,executed_share,unsafe_on_min_per_run,unsafe_on_ci95,wrong_off_min_per_run,wrong_off_ci95,passed
+sig_only,只數簽名,signature only,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+sig_only,只數簽名,signature only,0.0,duplicate,5 秒後重送同一則,6,1728,3432,3432,1.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+sig_only,只數簽名,signature only,0.0,reverse,切換後重送反向的舊指令,6,2233,4435,4435,1.0,3024,0,0,0,0,2744,2744,1.0,635.04,103.53,1674.75,85.93,True
+sig_only,只數簽名,signature only,0.0,late,重送 30 分鐘以上的舊指令,6,2026,4358,4358,1.0,2869,0,0,0,0,2704,2704,1.0,705.95,21.3,1333.16,45.34,True
+ttl,＋有效期限,ttl,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+ttl,＋有效期限,ttl,0.0,duplicate,5 秒後重送同一則,6,1728,3432,3432,1.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+ttl,＋有效期限,ttl,0.0,reverse,切換後重送反向的舊指令,6,2420,5232,3509,0.6707,2614,0,0,1723,0,2861,2861,1.0,632.64,15.22,1152.34,25.29,True
+ttl,＋有效期限,ttl,0.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,0,0,6120,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+ttl_slow,＋有效期限，時鐘慢 1 小時,ttl,-3600.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+ttl_slow,＋有效期限，時鐘慢 1 小時,ttl,-3600.0,duplicate,5 秒後重送同一則,6,1728,3432,3432,1.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+ttl_slow,＋有效期限，時鐘慢 1 小時,ttl,-3600.0,reverse,切換後重送反向的舊指令,6,2114,4218,3983,0.9443,2882,0,0,235,0,2527,2527,1.0,819.74,68.06,1317.0,29.34,True
+ttl_slow,＋有效期限，時鐘慢 1 小時,ttl,-3600.0,late,重送 30 分鐘以上的舊指令,6,1981,4186,4018,0.9599,2696,0,0,168,0,2625,2625,1.0,733.41,22.33,1233.89,42.82,True
+order,＋高度與序號,order,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+order,＋高度與序號,order,0.0,duplicate,5 秒後重送同一則,6,1728,3432,0,0.0,0,0,0,0,3432,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+order,＋高度與序號,order,0.0,reverse,切換後重送反向的舊指令,6,3360,6696,0,0.0,0,6696,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+order,＋高度與序號,order,0.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,6120,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+version,＋狀態版本,version,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+version,＋狀態版本,version,0.0,duplicate,5 秒後重送同一則,6,1728,3432,0,0.0,0,0,3432,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+version,＋狀態版本,version,0.0,reverse,切換後重送反向的舊指令,6,3360,6696,0,0.0,0,0,6696,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+version,＋狀態版本,version,0.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,0,6120,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full,全部檢查,binding+order+target+ttl+version,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full,全部檢查,binding+order+target+ttl+version,0.0,duplicate,5 秒後重送同一則,6,1728,3432,0,0.0,0,0,0,0,3432,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full,全部檢查,binding+order+target+ttl+version,0.0,reverse,切換後重送反向的舊指令,6,3360,6696,0,0.0,0,6696,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full,全部檢查,binding+order+target+ttl+version,0.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,6120,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_no_ttl,全部檢查，不看有效期限,binding+order+target+version,0.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_no_ttl,全部檢查，不看有效期限,binding+order+target+version,0.0,duplicate,5 秒後重送同一則,6,1728,3432,0,0.0,0,0,0,0,3432,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_no_ttl,全部檢查，不看有效期限,binding+order+target+version,0.0,reverse,切換後重送反向的舊指令,6,3360,6696,0,0.0,0,6696,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_no_ttl,全部檢查，不看有效期限,binding+order+target+version,0.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,6120,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_slow,全部檢查，時鐘慢 1 小時,binding+order+target+ttl+version,-3600.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_slow,全部檢查，時鐘慢 1 小時,binding+order+target+ttl+version,-3600.0,duplicate,5 秒後重送同一則,6,1728,3432,0,0.0,0,0,0,0,3432,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_slow,全部檢查，時鐘慢 1 小時,binding+order+target+ttl+version,-3600.0,reverse,切換後重送反向的舊指令,6,3360,6696,0,0.0,0,6696,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_slow,全部檢查，時鐘慢 1 小時,binding+order+target+ttl+version,-3600.0,late,重送 30 分鐘以上的舊指令,6,3072,6120,0,0.0,0,6120,0,0,0,3432,3432,1.0,0.0,0.0,0.0,0.0,True
+full_fast,全部檢查，時鐘快 1 小時,binding+order+target+ttl+version,3600.0,none,不攻擊,6,0,0,0,0.0,0,0,0,0,0,1728,0,0.0,1459.98,0.0,0.0,0.0,True
+full_fast,全部檢查，時鐘快 1 小時,binding+order+target+ttl+version,3600.0,duplicate,5 秒後重送同一則,6,1728,1728,0,0.0,0,0,0,0,1728,1728,0,0.0,1459.98,0.0,0.0,0.0,True
+full_fast,全部檢查，時鐘快 1 小時,binding+order+target+ttl+version,3600.0,reverse,切換後重送反向的舊指令,6,0,0,0,0.0,0,0,0,0,0,1728,0,0.0,1459.98,0.0,0.0,0.0,True
+full_fast,全部檢查，時鐘快 1 小時,binding+order+target+ttl+version,3600.0,late,重送 30 分鐘以上的舊指令,6,0,0,0,0.0,0,0,0,0,0,1728,0,0.0,1459.98,0.0,0.0,0.0,True

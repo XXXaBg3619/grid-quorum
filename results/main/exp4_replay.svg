@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 832 480" width="832" height="480" role="img" aria-labelledby="t d">
+<style>svg.viz{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;font-family:system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif}@media (prefers-color-scheme: dark){svg.viz{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;}}.bg{fill:var(--surface)}.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1}.ref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;fill:none}.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dash{stroke-dasharray:6 4}.mk{stroke:var(--surface);stroke-width:2}.hollow{fill:var(--surface);stroke-width:2}.hit{fill:transparent;pointer-events:all}.hit:hover+.mk,.mk:hover{stroke:var(--ink)}.l1{stroke:var(--s1)}.f1{fill:var(--s1)}.b1{fill:var(--s1);fill-opacity:.14}.l2{stroke:var(--s2)}.f2{fill:var(--s2)}.b2{fill:var(--s2);fill-opacity:.14}.l3{stroke:var(--s3)}.f3{fill:var(--s3)}.b3{fill:var(--s3);fill-opacity:.14}.l4{stroke:var(--s4)}.f4{fill:var(--s4)}.b4{fill:var(--s4);fill-opacity:.14}text{font-size:12px}.title{font-size:15px;font-weight:600}.ptitle{font-size:13px;font-weight:600}.small{font-size:11px}</style>
+<style>svg.viz{--h0:#f0efec;--h1:#cde2fb;--h2:#9ec5f4;--h3:#6da7ec;--h4:#3987e5;--h5:#256abf;--h6:#184f95;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--ink);--hv5:var(--surface);--hv6:var(--surface);}@media (prefers-color-scheme: dark){svg.viz{--h0:#2c2c2a;--h1:#104281;--h2:#184f95;--h3:#256abf;--h4:#3987e5;--h5:#6da7ec;--h6:#9ec5f4;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--surface);--hv5:var(--surface);--hv6:var(--surface);}}.h0{fill:var(--h0)}.hv0{fill:var(--hv0)}.h1{fill:var(--h1)}.hv1{fill:var(--hv1)}.h2{fill:var(--h2)}.hv2{fill:var(--hv2)}.h3{fill:var(--h3)}.hv3{fill:var(--hv3)}.h4{fill:var(--h4)}.hv4{fill:var(--hv4)}.h5{fill:var(--h5)}.hv5{fill:var(--hv5)}.h6{fill:var(--h6)}.hv6{fill:var(--hv6)}.cell{stroke:var(--surface);stroke-width:2}.cell:hover{stroke:var(--ink)}.cv{pointer-events:none;font-weight:600}.sw{stroke:var(--surface);stroke-width:2}</style>
+<title id="t">exp4 舊指令重放：變電所的哪一項檢查擋得住</title><desc id="d">各種變電所驗證規則面對三種重放攻擊時，重放指令被執行的比例，以及不攻擊時合法指令的執行率</desc>
+<rect class="bg" width="832" height="480"/>
+<text class="t1 title" x="16" y="26">exp4 舊指令重放：變電所的哪一項檢查擋得住</text>
+<text class="t2" x="16" y="46">7 個驗證者、4 座變電所、每 5 分鐘輪停一組饋線；6 次、每次 6 小時，無訊息遺失</text>
+<text class="t2" x="16" y="64">每一列都有 commit proof 簽章檢查；偏離是饋線狀態和「全部檢查、不攻擊」不同的時間（12 條饋線合計、每次平均）</text>
+<text class="t1 ptitle" x="340.0" y="94" text-anchor="middle">重放的指令被執行的比例</text>
+<line class="axis" x1="200" x2="480" y1="99" y2="99"/>
+<text class="t2" x="244.0" y="114" text-anchor="middle">5 秒後</text>
+<text class="t2" x="244.0" y="132" text-anchor="middle">重送同一則</text>
+<text class="t2" x="340.0" y="114" text-anchor="middle">切換後重送</text>
+<text class="t2" x="340.0" y="132" text-anchor="middle">反向的舊指令</text>
+<text class="t2" x="436.0" y="114" text-anchor="middle">重送 30 分鐘</text>
+<text class="t2" x="436.0" y="132" text-anchor="middle">以上的舊指令</text>
+<text class="t2" x="500.0" y="114" text-anchor="start">不攻擊時</text>
+<text class="t2" x="500.0" y="132" text-anchor="start">合法指令執行率</text>
+<text class="t2" x="612.0" y="114" text-anchor="start">饋線偏離參考</text>
+<text class="t2" x="612.0" y="132" text-anchor="start">（反向重送）</text>
+<text class="t2" x="712.0" y="114" text-anchor="start">饋線偏離參考</text>
+<text class="t2" x="712.0" y="132" text-anchor="start">（30 分鐘以上）</text>
+<text class="t1" x="16" y="161.0">只數簽名</text>
+<rect class="cell h6" x="196.0" y="142.0" width="96" height="30" rx="4"><title>只數簽名，5 秒後重送同一則：重放的 3432 道指令執行了 3432 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv6" x="244.0" y="161.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="292.0" y="142.0" width="96" height="30" rx="4"><title>只數簽名，切換後重送反向的舊指令：重放的 4435 道指令執行了 4435 道，其中 3024 道真的切換了饋線</title></rect><text class="cv hv6" x="340.0" y="161.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="388.0" y="142.0" width="96" height="30" rx="4"><title>只數簽名，重送 30 分鐘以上的舊指令：重放的 4358 道指令執行了 4358 道，其中 2869 道真的切換了饋線</title></rect><text class="cv hv6" x="436.0" y="161.0" text-anchor="middle">100%</text>
+<text class="t2" x="500.0" y="161.0">100%</text>
+<text class="t2" x="612.0" y="161.0">2,310 分鐘</text>
+<text class="t2" x="712.0" y="161.0">2,039 分鐘</text>
+<text class="t1" x="16" y="191.0">＋有效期限</text>
+<rect class="cell h6" x="196.0" y="172.0" width="96" height="30" rx="4"><title>＋有效期限，5 秒後重送同一則：重放的 3432 道指令執行了 3432 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv6" x="244.0" y="191.0" text-anchor="middle">100%</text>
+<rect class="cell h5" x="292.0" y="172.0" width="96" height="30" rx="4"><title>＋有效期限，切換後重送反向的舊指令：重放的 5232 道指令執行了 3509 道，其中 2614 道真的切換了饋線</title></rect><text class="cv hv5" x="340.0" y="191.0" text-anchor="middle">67%</text>
+<rect class="cell h0" x="388.0" y="172.0" width="96" height="30" rx="4"><title>＋有效期限，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="191.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="191.0">100%</text>
+<text class="t2" x="612.0" y="191.0">1,785 分鐘</text>
+<text class="t2" x="712.0" y="191.0">0 分鐘</text>
+<text class="t1" x="16" y="221.0">＋有效期限，時鐘慢 1 小時</text>
+<rect class="cell h6" x="196.0" y="202.0" width="96" height="30" rx="4"><title>＋有效期限，時鐘慢 1 小時，5 秒後重送同一則：重放的 3432 道指令執行了 3432 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv6" x="244.0" y="221.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="292.0" y="202.0" width="96" height="30" rx="4"><title>＋有效期限，時鐘慢 1 小時，切換後重送反向的舊指令：重放的 4218 道指令執行了 3983 道，其中 2882 道真的切換了饋線</title></rect><text class="cv hv6" x="340.0" y="221.0" text-anchor="middle">94%</text>
+<rect class="cell h6" x="388.0" y="202.0" width="96" height="30" rx="4"><title>＋有效期限，時鐘慢 1 小時，重送 30 分鐘以上的舊指令：重放的 4186 道指令執行了 4018 道，其中 2696 道真的切換了饋線</title></rect><text class="cv hv6" x="436.0" y="221.0" text-anchor="middle">96%</text>
+<text class="t2" x="500.0" y="221.0">100%</text>
+<text class="t2" x="612.0" y="221.0">2,137 分鐘</text>
+<text class="t2" x="712.0" y="221.0">1,967 分鐘</text>
+<text class="t1" x="16" y="251.0">＋高度與序號</text>
+<rect class="cell h0" x="196.0" y="232.0" width="96" height="30" rx="4"><title>＋高度與序號，5 秒後重送同一則：重放的 3432 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="251.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="232.0" width="96" height="30" rx="4"><title>＋高度與序號，切換後重送反向的舊指令：重放的 6696 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="340.0" y="251.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="388.0" y="232.0" width="96" height="30" rx="4"><title>＋高度與序號，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="251.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="251.0">100%</text>
+<text class="t2" x="612.0" y="251.0">0 分鐘</text>
+<text class="t2" x="712.0" y="251.0">0 分鐘</text>
+<text class="t1" x="16" y="281.0">＋狀態版本</text>
+<rect class="cell h0" x="196.0" y="262.0" width="96" height="30" rx="4"><title>＋狀態版本，5 秒後重送同一則：重放的 3432 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="281.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="262.0" width="96" height="30" rx="4"><title>＋狀態版本，切換後重送反向的舊指令：重放的 6696 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="340.0" y="281.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="388.0" y="262.0" width="96" height="30" rx="4"><title>＋狀態版本，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="281.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="281.0">100%</text>
+<text class="t2" x="612.0" y="281.0">0 分鐘</text>
+<text class="t2" x="712.0" y="281.0">0 分鐘</text>
+<text class="t1" x="16" y="321.0">全部檢查</text>
+<rect class="cell h0" x="196.0" y="302.0" width="96" height="30" rx="4"><title>全部檢查，5 秒後重送同一則：重放的 3432 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="321.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="302.0" width="96" height="30" rx="4"><title>全部檢查，切換後重送反向的舊指令：重放的 6696 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="340.0" y="321.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="388.0" y="302.0" width="96" height="30" rx="4"><title>全部檢查，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="321.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="321.0">100%</text>
+<text class="t2" x="612.0" y="321.0">0 分鐘</text>
+<text class="t2" x="712.0" y="321.0">0 分鐘</text>
+<text class="t1" x="16" y="351.0">全部檢查，不看有效期限</text>
+<rect class="cell h0" x="196.0" y="332.0" width="96" height="30" rx="4"><title>全部檢查，不看有效期限，5 秒後重送同一則：重放的 3432 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="351.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="332.0" width="96" height="30" rx="4"><title>全部檢查，不看有效期限，切換後重送反向的舊指令：重放的 6696 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="340.0" y="351.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="388.0" y="332.0" width="96" height="30" rx="4"><title>全部檢查，不看有效期限，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="351.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="351.0">100%</text>
+<text class="t2" x="612.0" y="351.0">0 分鐘</text>
+<text class="t2" x="712.0" y="351.0">0 分鐘</text>
+<text class="t1" x="16" y="381.0">全部檢查，時鐘慢 1 小時</text>
+<rect class="cell h0" x="196.0" y="362.0" width="96" height="30" rx="4"><title>全部檢查，時鐘慢 1 小時，5 秒後重送同一則：重放的 3432 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="381.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="362.0" width="96" height="30" rx="4"><title>全部檢查，時鐘慢 1 小時，切換後重送反向的舊指令：重放的 6696 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="340.0" y="381.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="388.0" y="362.0" width="96" height="30" rx="4"><title>全部檢查，時鐘慢 1 小時，重送 30 分鐘以上的舊指令：重放的 6120 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="436.0" y="381.0" text-anchor="middle">0%</text>
+<text class="t2" x="500.0" y="381.0">100%</text>
+<text class="t2" x="612.0" y="381.0">0 分鐘</text>
+<text class="t2" x="712.0" y="381.0">0 分鐘</text>
+<text class="t1" x="16" y="411.0">全部檢查，時鐘快 1 小時</text>
+<rect class="cell h0" x="196.0" y="392.0" width="96" height="30" rx="4"><title>全部檢查，時鐘快 1 小時，5 秒後重送同一則：重放的 1728 道指令執行了 0 道，其中 0 道真的切換了饋線</title></rect><text class="cv hv0" x="244.0" y="411.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="292.0" y="392.0" width="96" height="30" rx="4"><title>全部檢查，時鐘快 1 小時，切換後重送反向的舊指令：沒有觸發任何重放（饋線沒有切換過）</title></rect><text class="cv hv0" x="340.0" y="411.0" text-anchor="middle">—</text>
+<rect class="cell h0" x="388.0" y="392.0" width="96" height="30" rx="4"><title>全部檢查，時鐘快 1 小時，重送 30 分鐘以上的舊指令：沒有觸發任何重放（饋線沒有切換過）</title></rect><text class="cv hv0" x="436.0" y="411.0" text-anchor="middle">—</text>
+<text class="t2" x="500.0" y="411.0">0%</text>
+<text class="t2" x="612.0" y="411.0">1,460 分鐘</text>
+<text class="t2" x="712.0" y="411.0">1,460 分鐘</text>
+<text class="tm small" x="196" y="450" text-anchor="end" dx="-8">0%</text>
+<rect class="sw h0" x="196" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h1" x="218" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h2" x="240" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h3" x="262" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h4" x="284" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h5" x="306" y="438" width="22" height="16" rx="3"/>
+<rect class="sw h6" x="328" y="438" width="22" height="16" rx="3"/>
+<text class="tm small" x="358" y="450">100%</text>
+<text class="t2 small" x="398" y="450">重放的指令被執行的比例</text>
+</svg>
