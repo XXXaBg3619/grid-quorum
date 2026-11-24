@@ -12,8 +12,9 @@ into the COMMAND_REJECTED event:
   relative_target      the target must be an absolute state (on / off), never a step
   state_mismatch       the state-version precondition does not match the
                        substation's current state version
-  insufficient_quorum  fewer than Q valid signatures from distinct validators
-                       over the block hash (crypto.KeyRing.count_valid)
+  insufficient_quorum  fewer than Q valid precommit signatures from distinct
+                       validators over the block hash (consensus.verify_commit,
+                       which also gives wrong_chain and wrong_epoch)
   bad_signature        A / B: the dispatch centre's signature does not verify
   header_mismatch      the block's header does not extend the chain this
                        substation trusts (chain.verify_chain with checkpoints)

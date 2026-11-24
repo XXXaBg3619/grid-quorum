@@ -5,15 +5,20 @@ As in evsim, one Fault object works for every architecture: each architecture
 calls only the hooks that exist in its design, and every hook defaults to
 honest behaviour. So exactly the same fault runs against A, B, C and D.
 
-Hooks (signatures may still change when consensus/ and sim.py are written):
+Hooks (consensus/ calls the first four; sim may still change when sim.py is
+written, and is the Committee when the consensus runs on its own):
   begin_run(sim, rng)                        before a run; schedule timed actions
                                              (partitions via sim.net, replays, crashes)
-  node_up(sim, node, t) -> bool              crash or offline                        exp 2
+  node_up(sim, node, t) -> bool              crash or offline: a down validator sends
+                                             and receives nothing                    exp 2
   proposal(sim, node, height, rnd, block, recipients) -> {recipient: block}
                                              different blocks to different
-                                             recipients = equivocation               exp 1
-  vote(sim, node, kind, height, rnd, value, recipients) -> {recipient: value or None}
-                                             byzantine or withheld votes             exp 1
+                                             recipients = equivocation; a recipient
+                                             left out gets nothing                   exp 1
+  vote(sim, node, kind, height, rnd, value, recipients) -> {recipient: value}
+                                             kind "prevote" or "precommit", value a
+                                             block id or None (nil): double votes or
+                                             withheld votes                          exp 1
   central_commands(sim, commands) -> commands  a hacked dispatch centre (A, B)        exp 5
   compromised(sim) -> set of nodes           whose keys the attacker holds           exp 6
 
@@ -21,7 +26,8 @@ The six faults (design doc table): 1 an equivocating validator; 2 one to three
 validators offline; 3 partition or delay; 4 replay of an executed command;
 5 restore commands that are each valid but overload the island together;
 6 common-cause compromise (several nodes of one organisation at once).
-Only Honest exists so far.
+Only Honest exists so far; tests/test_consensus.py has first versions of 1 and 2
+(Equivocate, Down) that the experiment faults will grow from.
 """
 from __future__ import annotations
 

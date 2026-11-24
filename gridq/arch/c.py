@@ -7,8 +7,8 @@ hacked or bombed, up to f. Weakness: one administrative domain, so shared
 accounts, staff and software let a single intrusion take many nodes at once
 (common-cause failure, experiment 6), and all input data comes from Taipower.
 
-To be written next: shares the committee code with D; differs only in node
-ownership, which faults.py uses for the common-cause model.
+To be written next: shares the committee code (consensus.Committee) with D;
+differs only in node ownership, which faults.py uses for the common-cause model.
 """
 from .base import Architecture
 

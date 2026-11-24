@@ -32,8 +32,9 @@ class GridConfig:
 
     # --- Committee (C, D) ---
     n_validators: int = 7
-    round_timeout_s: float = 3.0     # T: timeout of a step in round 0
-    timeout_delta_s: float = 0.5     # added per round (partial synchrony)
+    round_timeout_s: float = 3.0     # propose timeout in round 0 (CometBFT's timeout_propose)
+    vote_timeout_s: float = 1.0      # prevote and precommit timeouts in round 0 (CometBFT's defaults)
+    timeout_delta_s: float = 0.5     # added to every timeout per round (partial synchrony)
 
     # --- Network: every link between two nodes (see network.py) ---
     net_delay_s: float = 0.05        # base one-way delay
@@ -94,8 +95,12 @@ class GridConfig:
         return self.net_delay_s + self.net_jitter_s
 
     def round_timeout(self, rnd: int) -> float:
-        """Timeout of round `rnd` (0-based); grows linearly, as in Tendermint."""
+        """Propose timeout of round `rnd` (0-based); grows linearly, as in Tendermint."""
         return self.round_timeout_s + rnd * self.timeout_delta_s
+
+    def vote_timeout(self, rnd: int) -> float:
+        """Prevote and precommit timeouts of round `rnd`; grow like round_timeout()."""
+        return self.vote_timeout_s + rnd * self.timeout_delta_s
 
     def with_(self, **kw) -> "GridConfig":
         return replace(self, **kw)

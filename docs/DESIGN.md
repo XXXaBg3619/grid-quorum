@@ -1,7 +1,7 @@
-# grid-quorum 設計說明（v0.1 骨架）
+# grid-quorum 設計說明
 
 > 依據：專題文件「戰時電網緊急分配：尖銳問題、回答與自承限制」（2026-11-24 定稿，「下一步：實作範圍與順序」一節）。
-> 這一版只有骨架：從 evsim（BlokcChin@796b43c）搬來可直接沿用的模組，加上待實作模組的介面說明。
+> v0.1 是骨架：從 evsim（BlokcChin@796b43c）搬來可直接沿用的模組，加上待實作模組的介面說明。之後照 §7 的順序補上，目前完成第 1 步：逐節點共識（§3「共識的實作」、§7「第 1 步的檢查結果」）。
 
 ## 1. 目標
 
@@ -27,11 +27,26 @@
 ## 3. 協議與故障模型
 
 - 標準 BFT：f = ⌊(n − 1) / 3⌋，Q = ⌊2n / 3⌋ + 1（超過三分之二，和 CometBFT 一致）。n = 7 時 f = 2、Q = 5；n = 4 時 f = 1、Q = 3。`config.py` 由 n 推出 f 和 Q，測試檢查任兩個 Q 至少重疊 f + 1 個節點，而且 f 個節點沉默時仍能提交。
-- f 把被駭和失聯的節點合計。活性假設部分同步：每一輪的逾時遞增（`GridConfig.round_timeout(r)`），網路恢復後總有一輪夠長。
+- f 把被駭和失聯的節點合計。活性假設部分同步：每一輪的逾時遞增（`GridConfig.round_timeout(r)`、`vote_timeout(r)`），網路恢復後總有一輪夠長。
 - 驗證者集合固定（epoch 不變），動態成員與熱備援列為未來工作。
 - 變電所是輕節點：檢查鏈 ID、epoch、高度與序號、饋線與絕對目標狀態、狀態版本、commit proof（至少 Q 個不同驗證者的有效簽章）和區塊頭鏈；TTL 只是次要檢查。拒絕理由的代碼在 `verifier.REJECT_REASONS`。
 - 保守降級：湊不滿 Q 或沒有新的提交時，變電所維持現狀，只准在地保護性卸載（過載、UFLS）；不自動復閉，也不切換到備案輪停表。只有 B 有靜態備案，那是 B 的定義。
 - 簽章：標準函式庫沒有 Ed25519，用每個節點一把金鑰的 HMAC 代替（`crypto.py`）。攻破 k 個節點的攻擊者持有 k 把金鑰，只做得出 k 個有效簽章。
+
+### 共識的實作（`gridq/consensus/`）
+
+每個驗證者一個狀態機（`tendermint.py`），照 Buchman、Kwon、Milosevic〈The latest gossip on BFT consensus〉（2018）的 Algorithm 1 寫，也就是 CometBFT 跑的協議：提案、prevote、precommit、鎖、valid value、換輪，收到超過 n/3 個驗證者較高輪次的訊息就跳到那一輪。提案者是 `validators[(h + r) mod n]`，沿用 evsim 的輪替。論文假設訊息會 gossip 到送達為止，這裡的網路則會把訊息丟掉，所以有下面幾個建模選擇：
+
+- **計時器對齊**：每一步都由計時器結束。從本輪開始算，提案步在 P = `round_timeout(r)` 結束；prevote 步在「進入 prevote」和 P 較晚的那個之後再過 V = `vote_timeout(r)`；precommit 步在「進入 precommit」和 P + V 較晚的那個之後再過 V。預設 P = 3 + 0.5r 秒、V = 1 + 0.5r 秒。一輪失敗時，每個節點都在本輪開始後剛好 P + 2V 進下一輪，和論文在票全部送達時的時序相同。論文的 prevote、precommit 計時器要收到 Q 票才開始，其餘的票靠 gossip 補；這裡票會遺失，照論文做的話，一張票不見就可能讓一輪永遠卡住。計時器只決定節點什麼時候往下走，不決定投什麼，所以不影響安全。
+- **鎖定證明（POL）**：重新提出自己的 valid value 時，提案附上讓它成為 valid value 的 Q 個 prevote 簽章。CometBFT 靠 gossip 傳這些 prevote；少了它們，錯過的節點永遠不能接受這個值，而鎖住的節點又不接受別的值，運氣差的一輪就可能卡死整個高度。
+- **區塊本體**：只有收到提案的節點會對那個區塊投 prevote 和 precommit（CometBFT 對沒收到的區塊投 nil precommit）。非 nil 的 precommit 帶著區塊本體，代替 CometBFT 的區塊分片 gossip，所以任何數到 Q 個 precommit 的節點都能提交。
+- **追趕**：節點收到已經決定的高度的訊息時，回傳那個高度起的區塊和 commit proof，每個對象、高度、輪次只回一次，代替 CometBFT 的 block sync。對方的票如果正是那個高度提交那一輪、同一個區塊的票，就不回。
+- **時槽**：區塊記錄提案時的調度時槽 k，高度 h + 1 在時槽 k + 1 開始時開始；共識拖過了時槽 k + 1 就立刻開始。區塊有效的條件是鏈 ID、epoch、高度、前一個區塊的雜湊和時槽都對（上一個區塊的時槽 < 時槽 ≤ 現在的時槽），而且應用層的 `valid_fn` 接受。`valid_fn` 對同一個區塊在任何時候都要給同樣的答案，否則鎖住的區塊後來變成無效，會讓那個高度卡住；指令過期由變電所驗證器處理。
+- **離線節點**：不送也不收訊息，計時器照走。
+- **commit proof**：`{height, round, block, sigs}`，`sigs` 是至少 Q 個驗證者對 precommit 摘要的簽章。`messages.verify_commit` 依序檢查鏈 ID、epoch、格式和有效簽章數，拒絕理由是 `wrong_chain`、`wrong_epoch`、`insufficient_quorum`。prevote 簽的是另一個摘要，不能拿來湊 commit proof。
+- **雙簽證據**：同一個驗證者在同一輪送出兩個不同的提案或兩張不同的票，記一筆 `EVIDENCE` 事件（每個驗證者、種類、輪次只記一次）。
+
+理論值也跟著修正。evsim 的 M2 讓沒收到提案的驗證者也能 precommit，Tendermint 和 CometBFT 不會，所以 `theory.round_outcome` 改成只有 prevote 過的驗證者能 precommit；測試裡有一個 n = 4 的反例，照 evsim 的算法會提交，照協議不會。`theory.commit_latency_bound(cfg, k)` 是沒有遺失、前 k 輪的提案者沉默時，第一次提交的最晚時間：前 k 輪各 P + 2V，加上提案、prevote、precommit 三跳的最大延遲。
 
 ## 4. 模組與狀態
 
@@ -44,20 +59,21 @@
 | `gridq/network.py` | 節點對節點的延遲、iid 遺失、Gilbert-Elliott 斷線、分區；亂數依 key 抽 | evsim `network.py`，從住戶連線推廣 | 完成 |
 | `gridq/crypto.py` | 模擬簽章（HMAC） | 新寫 | 完成 |
 | `gridq/chain.py` | 區塊頭雜湊鏈與驗證（完整性、副本、檢查點） | evsim `m1.log_entry`／`verify_log`，推廣到任意區塊格式 | 完成 |
-| `gridq/theory.py` | `round_success_prob`：訊息遺失下一輪共識成功的機率 | evsim `m2.py`，改成傳入 Q | 部分：延遲上界、共因模型待寫 |
+| `gridq/theory.py` | `round_success_prob`：訊息遺失下一輪共識成功的機率；`round_outcome`：給定哪些訊息送達，一輪是否提交；`commit_latency_bound`：提交延遲上界 | evsim `m2.py`，改成傳入 Q、只有 prevote 過的才能 precommit | 部分：共因模型待寫 |
 | `gridq/metrics.py` | `mean_ci95`、`jain`、`paired_diff` | evsim `metrics.py` | 部分：電網指標待寫 |
 | `gridq/svgchart.py` | 不靠外部套件的折線圖（CI 帶、參考線、深色模式） | evsim `svgchart.py`，原樣 | 完成 |
-| `gridq/faults.py` | 故障掛勾，預設誠實；同一個故障物件套到四種架構 | evsim `attacks.py` 的寫法 | 介面；六種故障待寫 |
+| `gridq/faults.py` | 故障掛勾，預設誠實；同一個故障物件套到四種架構 | evsim `attacks.py` 的寫法 | 介面；六種故障待寫（`tests/test_consensus.py` 有作惡節點和離線的雛形） |
 | `gridq/arch/` | A／B／C／D 與共同介面 `Architecture` | evsim `mechanisms/base.py` 的寫法 | 介面；四種架構待寫 |
-| `gridq/consensus/` | 逐節點的 BFT 共識（提案、prevote、precommit、鎖、換輪） | 新寫，取代 evsim 的 M2 | 待寫 |
-| `gridq/verifier.py` | 變電所輕節點驗證 | 新寫 | 拒絕理由已定；檢查待寫 |
+| `gridq/consensus/` | 逐節點的 BFT 共識（提案、prevote、precommit、鎖、換輪、追趕）與 commit proof | 新寫，取代 evsim 的 M2 | 完成，通過 §7 第 1 步的檢查 |
+| `gridq/verifier.py` | 變電所輕節點驗證 | 新寫 | 拒絕理由已定；commit proof 用 `consensus.verify_commit`，其餘檢查待寫 |
 | `gridq/policy.py` | 政府規則（純函式）、在地檢查與全域檢查 | evsim `allocation.py` 的原則 | 待寫 |
 | `gridq/power.py` | G(t)、饋線、冷載、UFLS、狀態版本 | 新寫 | 待寫 |
 | `gridq/loads.py` | 醫院、加壓站、基地台、避難所、住宅負載 | 新寫 | 待寫 |
 | `gridq/sim.py` | 一個孤島、一種架構、一次執行 | evsim `engine.py` 的分工 | 待寫 |
 | `gridq/run.py` | 誠實組對故障組的配對執行 | evsim `run.py` | 待寫 |
 | `experiments/common.py` | 實驗腳本共用：參數、平行執行、CSV 加 meta.json | evsim 實驗腳本的骨架 | 完成 |
-| `experiments/run_all.sh` | 一次重跑全部實驗，先跑測試 | evsim `run_c3.sh` | 完成，實驗腳本寫好後自動加入 |
+| `experiments/check_consensus.py` | §7 第 1 步：逐節點共識對理論值的檢查 | 新寫 | 完成 |
+| `experiments/run_all.sh` | 一次重跑全部實驗，先跑測試和共識檢查 | evsim `run_c3.sh` | 完成，六個實驗腳本寫好後自動加入 |
 
 ## 5. 六個實驗
 
@@ -75,6 +91,7 @@
 ## 6. 刻意的簡化（之後可改）
 
 - 分區期間跨群組的訊息直接丟掉，不排隊，靠協議在後面的輪次重送。
+- 共識訊息不重送：一則訊息遺失就是遺失，靠下一輪重來，這也是 `round_success_prob` 的假設。CometBFT 會 gossip 到送達為止，所以遺失率高時這裡的提交延遲比實際引擎悲觀（n = 7、p = 0.3 時第一次提交的 p95 約 800 秒）。
 - 遺失和分區在送出時判定；分區開始前送出的訊息照常送達。
 - 斷線模型以節點為單位：任一端斷線，訊息就遺失。
 - 簽章是對稱式 HMAC，驗證端持有所有金鑰，只模擬「沒有金鑰就簽不出來」。
@@ -84,11 +101,29 @@
 
 依專題文件的順序：
 
-1. `consensus/`：逐節點共識，先通過「無故障、iid 遺失下的成功率符合 `theory.round_success_prob`」和「衝突提交為零」兩項檢查。
+1. `consensus/`（完成）：逐節點共識，先通過「無故障、iid 遺失下的成功率符合 `theory.round_success_prob`」和「衝突提交為零」兩項檢查。結果見下方。
 2. `verifier.py` 接上 commit proof 與 `chain.py`，做 exp4。
 3. `power.py`、`loads.py`、`policy.py`，再接上 `sim.py`、`run.py` 和 A／B／C／D。
 4. `faults.py` 的六種故障與 `experiments/exp1` 到 `exp6`；`theory.py` 補上共因模型，畫 C 對 D 的邊界圖。
 5. 加分項：用 Docker 跑 7 個節點加一個變電所驗簽腳本。
+
+### 第 1 步的檢查結果
+
+`experiments/check_consensus.py`：誠實驗證者，每則訊息各自以機率 p 遺失、不重送，高度間隔一小時。n = 4 與 n = 7、p 從 0 到 0.3 共 16 格，每格 10 個種子 × 4 次 × 50 個高度 = 2000 個高度。16 格全部通過：
+
+- 同一組抽樣下逐高度比對：每個高度第 0 輪有沒有提交，和 `theory.round_outcome` 用那個高度實際遺失的訊息算出的答案完全一致，0 次不一致。
+- 第 0 輪提交比例和 `round_success_prob` 相差都在 2.2 個標準誤以內（門檻是 4 個標準誤加 0.005）。各格共用同一組網路亂數，所以偏差會一起偏向同一邊；換一組種子（10 到 19）重跑 n = 7，偏差就有正有負。
+- 沒有任何高度提交了兩個不同的區塊，每個開始的高度最後都被全部驗證者提交。
+
+| 遺失率 p | n = 4 模擬 | n = 4 理論 | n = 7 模擬 | n = 7 理論 |
+|---|---|---|---|---|
+| 0 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 0.05 | 0.958 | 0.955 | 0.968 | 0.975 |
+| 0.1 | 0.855 | 0.855 | 0.858 | 0.872 |
+| 0.2 | 0.567 | 0.578 | 0.429 | 0.450 |
+| 0.3 | 0.308 | 0.311 | 0.107 | 0.117 |
+
+n = 7、p = 0.3 有 2 個高度被前一個高度拖過一小時，第 0 輪沒有在各節點同時開始，不列入第 0 輪的比較。完整數字（95% 信賴區間、平均提交輪次、延遲分位數）在 `results/main/check_consensus.csv`，圖在同名的 `.svg`。重跑：`python3 experiments/check_consensus.py`（4 核約 1 分鐘）。
 
 ## 8. 來源
 

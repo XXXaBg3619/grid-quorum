@@ -29,7 +29,8 @@ class EventKind(str, Enum):
     PREVOTE = "prevote"
     PRECOMMIT = "precommit"
     COMMIT = "commit"                        # a node saw Q precommits for one block (data: commit proof)
-    ROUND_TIMEOUT = "round_timeout"          # a node moved on to the next round
+    ROUND_TIMEOUT = "round_timeout"          # a step timer fired (data["step"]): vote nil or move to the next round
+    EVIDENCE = "evidence"                    # two conflicting signed messages from one validator (double signing)
     # dispatch path (all architectures)
     COMMAND_ISSUED = "command_issued"        # dispatch centre (A, B) or committee (C, D) issued a command
     COMMAND_RECEIVED = "command_received"    # a substation got a command
@@ -56,7 +57,7 @@ class Event:
     seq: int
     t: float
     kind: EventKind
-    actor: str                  # "validator:3", "centre", "substation:S2", "sim"
+    actor: str                  # "validator:v3", "centre", "substation:S2", "sim"
     data: dict
     visibility: str = "public"  # "public" | "truth"
     prev_hash: str = GENESIS

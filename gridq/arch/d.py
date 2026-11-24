@@ -9,8 +9,8 @@ one organisation's breach touching only one node. Costs: the most expensive and
 complex option, the weakest organisation lowers overall security, and shared
 input data can still be false.
 
-To be written next: the committee from consensus/, commit proofs, the
-substation verifier (verifier.py).
+To be written next: wire the committee (consensus.Committee, with commit
+proofs) to the policy and the substation verifier (verifier.py).
 """
 from .base import Architecture
 
