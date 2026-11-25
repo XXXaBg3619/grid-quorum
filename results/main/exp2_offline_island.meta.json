@@ -1,0 +1,114 @@
+{
+  "git_commit": "cb617d1",
+  "experiment": "exp2_offline",
+  "part": "island",
+  "step": "docs/DESIGN.md section 7, step 4",
+  "seeds": 5,
+  "runs_per_seed": 4,
+  "config": {
+    "arch": "D",
+    "n_validators": 7,
+    "round_timeout_s": 3.0,
+    "vote_timeout_s": 1.0,
+    "timeout_delta_s": 0.5,
+    "net_delay_s": 0.05,
+    "net_jitter_s": 0.05,
+    "link_loss_p": 0.0,
+    "link_loss_model": "iid",
+    "link_outage_mean_s": 600.0,
+    "link_retries": 0,
+    "link_retry_gap_s": 1.0,
+    "dispatch_period_s": 300.0,
+    "horizon_h": 24.0,
+    "chain_id": "island-1",
+    "epoch": 1,
+    "command_ttl_s": 900.0,
+    "report_inclusion_s": 60.0,
+    "start_hour": 0.0,
+    "load_noise": 0.03,
+    "supply_profile": [
+      [
+        0.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.45
+      ],
+      [
+        14.0,
+        0.45
+      ],
+      [
+        20.0,
+        0.6
+      ]
+    ],
+    "supply_jitter_h": 1.0,
+    "cold_load_multiplier": 2.0,
+    "cold_load_decay_s": 1800.0,
+    "ufls_margin": 0.05,
+    "ufls_delay_s": 2.0,
+    "blackstart_s": 3600.0,
+    "balance_check_s": 60.0,
+    "reserve_margin": 0.05,
+    "min_dwell_s": 1800.0,
+    "heartbeat_s": 30.0,
+    "failover_s": 90.0,
+    "local_max_switch": 2,
+    "fallback_after_s": 900.0,
+    "plan_supply_share": 0.4,
+    "runs": 30,
+    "seed": 0,
+    "f": 2,
+    "quorum": 5
+  },
+  "lost": {
+    "A": {
+      "within": [
+        "centre"
+      ],
+      "beyond": [
+        "centre",
+        "backup"
+      ]
+    },
+    "B": {
+      "within": [
+        "centre"
+      ],
+      "beyond": [
+        "centre",
+        "backup"
+      ]
+    },
+    "C": {
+      "within": [
+        "v5",
+        "v6"
+      ],
+      "beyond": [
+        "v4",
+        "v5",
+        "v6"
+      ]
+    }
+  },
+  "durations_s": {
+    "30m": 1800.0,
+    "2h": 7200.0,
+    "day": null
+  },
+  "pass_rule": "within: A, B fail over (at most one slot missed), C decides every slot as without the loss; beyond: C commits nothing and switches no feeder by command during the outage and resumes within two periods, A decides nothing and resumes within failover_s plus one period, B's four substations run their tables; no collapses",
+  "all_passed": true,
+  "known_issues": [
+    "C stands for D: the same code; they differ in who runs the validators (experiment 6)",
+    "a substation that holds keeps its feeders as they are and sheds only by UFLS; the island's load and supply keep changing, so a long hold can trip UFLS that a live decision would avoid",
+    "both centres of A come back as standby; the one that hears no heartbeat for failover_s takes over, so A's resumption includes the failover time",
+    "a validator back from an outage missed the substations' reports while it was away; until each substation's next report (at most one dispatch period) its own proposals leave reports out and the others refuse them (report-inclusion rule), so C resumes when a validator that stayed up proposes (up to about 400 s after a two-hour stop, column resume_max_s). Validators do not pass reports to each other, as a CometBFT mempool would on reconnect"
+  ]
+}

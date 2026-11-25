@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 1142 498" width="1142" height="498" role="img" aria-labelledby="t d">
+<style>svg.viz{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;font-family:system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif}@media (prefers-color-scheme: dark){svg.viz{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;}}.bg{fill:var(--surface)}.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1}.ref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;fill:none}.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dash{stroke-dasharray:6 4}.mk{stroke:var(--surface);stroke-width:2}.hollow{fill:var(--surface);stroke-width:2}.hit{fill:transparent;pointer-events:all}.hit:hover+.mk,.mk:hover{stroke:var(--ink)}.l1{stroke:var(--s1)}.f1{fill:var(--s1)}.b1{fill:var(--s1);fill-opacity:.14}.l2{stroke:var(--s2)}.f2{fill:var(--s2)}.b2{fill:var(--s2);fill-opacity:.14}.l3{stroke:var(--s3)}.f3{fill:var(--s3)}.b3{fill:var(--s3);fill-opacity:.14}.l4{stroke:var(--s4)}.f4{fill:var(--s4)}.b4{fill:var(--s4);fill-opacity:.14}text{font-size:12px}.title{font-size:15px;font-weight:600}.ptitle{font-size:13px;font-weight:600}.small{font-size:11px}</style>
+<style>svg.viz{--h0:#f0efec;--h1:#cde2fb;--h2:#9ec5f4;--h3:#6da7ec;--h4:#3987e5;--h5:#256abf;--h6:#184f95;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--ink);--hv5:var(--surface);--hv6:var(--surface);}@media (prefers-color-scheme: dark){svg.viz{--h0:#2c2c2a;--h1:#104281;--h2:#184f95;--h3:#256abf;--h4:#3987e5;--h5:#6da7ec;--h6:#9ec5f4;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--surface);--hv5:var(--surface);--hv6:var(--surface);}}.h0{fill:var(--h0)}.hv0{fill:var(--hv0)}.h1{fill:var(--h1)}.hv1{fill:var(--hv1)}.h2{fill:var(--h2)}.hv2{fill:var(--hv2)}.h3{fill:var(--h3)}.hv3{fill:var(--hv3)}.h4{fill:var(--h4)}.hv4{fill:var(--hv4)}.h5{fill:var(--h5)}.hv5{fill:var(--hv5)}.h6{fill:var(--h6)}.hv6{fill:var(--hv6)}.cell{stroke:var(--surface);stroke-width:2}.cell:hover{stroke:var(--ink)}.cv{pointer-events:none;font-weight:600}.sw{stroke:var(--surface);stroke-width:2}</style>
+<title id="t">exp2 驗證者離線：f 個以內照常提交，超過就停下來，回來後接上</title><desc id="d">不同委員會大小與離線節點數下，離線期間有區塊提交的時槽比例、提交延遲，以及恢復後到第一次提交的時間</desc>
+<rect class="bg" width="1142" height="498"/>
+<text class="t1 title" x="16" y="26">exp2 驗證者離線：f 個以內照常提交，超過就停下來，回來後接上</text>
+<text class="t2" x="16" y="46">36 個 5 分鐘時槽，第 6 到 18 個時槽（一小時）有 k 個驗證者完全不收不送；每格 20 次</text>
+<text class="t2" x="16" y="64">離線的是最後 k 個，輪到它們當提案者時連續逾時（延遲最差的情況）；回來的驗證者從其他人補齊區塊</text>
+<text class="t2" x="16" y="82">f 個離線時剩下的正好是 Q 個，任何一則訊息遺失都湊不滿：不重送時大多數時槽做不出決策，重送就恢復</text>
+<text class="t1 ptitle" x="471.0" y="112" text-anchor="middle">時槽的比例</text>
+<line class="axis" x1="265" x2="677" y1="117" y2="117"/>
+<text class="t2" x="331.0" y="132" text-anchor="middle">離線期間有區塊的時槽</text>
+<text class="t2" x="331.0" y="150" text-anchor="middle">無遺失</text>
+<text class="t2" x="471.0" y="132" text-anchor="middle">離線期間有區塊的時槽</text>
+<text class="t2" x="471.0" y="150" text-anchor="middle">遺失 10%，不重送</text>
+<text class="t2" x="611.0" y="132" text-anchor="middle">離線期間有區塊的時槽</text>
+<text class="t2" x="611.0" y="150" text-anchor="middle">遺失 10%，重送 2 次</text>
+<text class="t2" x="697.0" y="132" text-anchor="start">離線期間提交延遲 p95</text>
+<text class="t2" x="697.0" y="150" text-anchor="start">三種網路依序</text>
+<text class="t2" x="915.0" y="132" text-anchor="start">恢復後到第一次提交</text>
+<text class="t2" x="915.0" y="150" text-anchor="start">三種網路依序</text>
+<text class="t1" x="16" y="179.0">n = 7（f = 2）｜0 個離線（無）</text>
+<rect class="cell h6" x="261.0" y="160.0" width="140" height="30" rx="4"><title>n = 7，0 個離線，無遺失：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1680 次</title></rect><text class="cv hv6" x="331.0" y="179.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="401.0" y="160.0" width="140" height="30" rx="4"><title>n = 7，0 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1680 次</title></rect><text class="cv hv6" x="471.0" y="179.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="541.0" y="160.0" width="140" height="30" rx="4"><title>n = 7，0 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1680 次</title></rect><text class="cv hv6" x="611.0" y="179.0" text-anchor="middle">100%</text>
+<text class="t2" x="697.0" y="179.0">0.2 秒 ／ 19.7 秒 ／ 1.1 秒</text>
+<text class="t2" x="915.0" y="179.0">—</text>
+<text class="t1" x="16" y="209.0">n = 7（f = 2）｜1 個離線（f 以內）</text>
+<rect class="cell h6" x="261.0" y="190.0" width="140" height="30" rx="4"><title>n = 7，1 個離線，無遺失：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1440 次</title></rect><text class="cv hv6" x="331.0" y="209.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="401.0" y="190.0" width="140" height="30" rx="4"><title>n = 7，1 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1440 次</title></rect><text class="cv hv6" x="471.0" y="209.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="541.0" y="190.0" width="140" height="30" rx="4"><title>n = 7，1 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1440 次</title></rect><text class="cv hv6" x="611.0" y="209.0" text-anchor="middle">100%</text>
+<text class="t2" x="697.0" y="209.0">5.2 秒 ／ 52.7 秒 ／ 5.2 秒</text>
+<text class="t2" x="915.0" y="209.0">—</text>
+<text class="t1" x="16" y="239.0">n = 7（f = 2）｜2 個離線（f 以內）</text>
+<rect class="cell h6" x="261.0" y="220.0" width="140" height="30" rx="4"><title>n = 7，2 個離線，無遺失：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1200 次</title></rect><text class="cv hv6" x="331.0" y="239.0" text-anchor="middle">100%</text>
+<rect class="cell h3" x="401.0" y="220.0" width="140" height="30" rx="4"><title>n = 7，2 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 105 個提交了區塊；期間提交 445 次</title></rect><text class="cv hv3" x="471.0" y="239.0" text-anchor="middle">44%</text>
+<rect class="cell h6" x="541.0" y="220.0" width="140" height="30" rx="4"><title>n = 7，2 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 1200 次</title></rect><text class="cv hv6" x="611.0" y="239.0" text-anchor="middle">100%</text>
+<text class="t2" x="697.0" y="239.0">11.7 秒 ／ 26 分鐘 ／ 12.8 秒</text>
+<text class="t2" x="915.0" y="239.0">—</text>
+<text class="t1" x="16" y="269.0">n = 7（f = 2）｜3 個離線（超過 f）</text>
+<rect class="cell h0" x="261.0" y="250.0" width="140" height="30" rx="4"><title>n = 7，3 個離線，無遺失：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="331.0" y="269.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="401.0" y="250.0" width="140" height="30" rx="4"><title>n = 7，3 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="471.0" y="269.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="541.0" y="250.0" width="140" height="30" rx="4"><title>n = 7，3 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="611.0" y="269.0" text-anchor="middle">0%</text>
+<text class="t2" x="697.0" y="269.0">— ／ — ／ —</text>
+<text class="t2" x="915.0" y="269.0">51.7 秒 ／ 89.4 秒 ／ 51.9 秒</text>
+<text class="t1" x="16" y="299.0">n = 7（f = 2）｜4 個離線（超過 f）</text>
+<rect class="cell h0" x="261.0" y="280.0" width="140" height="30" rx="4"><title>n = 7，4 個離線，無遺失：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="331.0" y="299.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="401.0" y="280.0" width="140" height="30" rx="4"><title>n = 7，4 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="471.0" y="299.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="541.0" y="280.0" width="140" height="30" rx="4"><title>n = 7，4 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="611.0" y="299.0" text-anchor="middle">0%</text>
+<text class="t2" x="697.0" y="299.0">— ／ — ／ —</text>
+<text class="t2" x="915.0" y="299.0">51.7 秒 ／ 89.4 秒 ／ 51.9 秒</text>
+<text class="t1" x="16" y="339.0">n = 4（f = 1）｜0 個離線（無）</text>
+<rect class="cell h6" x="261.0" y="320.0" width="140" height="30" rx="4"><title>n = 4，0 個離線，無遺失：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 960 次</title></rect><text class="cv hv6" x="331.0" y="339.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="401.0" y="320.0" width="140" height="30" rx="4"><title>n = 4，0 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 960 次</title></rect><text class="cv hv6" x="471.0" y="339.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="541.0" y="320.0" width="140" height="30" rx="4"><title>n = 4，0 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 960 次</title></rect><text class="cv hv6" x="611.0" y="339.0" text-anchor="middle">100%</text>
+<text class="t2" x="697.0" y="339.0">0.2 秒 ／ 11.7 秒 ／ 1.1 秒</text>
+<text class="t2" x="915.0" y="339.0">—</text>
+<text class="t1" x="16" y="369.0">n = 4（f = 1）｜1 個離線（f 以內）</text>
+<rect class="cell h6" x="261.0" y="350.0" width="140" height="30" rx="4"><title>n = 4，1 個離線，無遺失：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 720 次</title></rect><text class="cv hv6" x="331.0" y="369.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="401.0" y="350.0" width="140" height="30" rx="4"><title>n = 4，1 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 720 次</title></rect><text class="cv hv6" x="471.0" y="369.0" text-anchor="middle">100%</text>
+<rect class="cell h6" x="541.0" y="350.0" width="140" height="30" rx="4"><title>n = 4，1 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 240 個提交了區塊；期間提交 720 次</title></rect><text class="cv hv6" x="611.0" y="369.0" text-anchor="middle">100%</text>
+<text class="t2" x="697.0" y="369.0">5.2 秒 ／ 99.3 秒 ／ 6.2 秒</text>
+<text class="t2" x="915.0" y="369.0">—</text>
+<text class="t1" x="16" y="399.0">n = 4（f = 1）｜2 個離線（超過 f）</text>
+<rect class="cell h0" x="261.0" y="380.0" width="140" height="30" rx="4"><title>n = 4，2 個離線，無遺失：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="331.0" y="399.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="401.0" y="380.0" width="140" height="30" rx="4"><title>n = 4，2 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="471.0" y="399.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="541.0" y="380.0" width="140" height="30" rx="4"><title>n = 4，2 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="611.0" y="399.0" text-anchor="middle">0%</text>
+<text class="t2" x="697.0" y="399.0">— ／ — ／ —</text>
+<text class="t2" x="915.0" y="399.0">51.7 秒 ／ 100.0 秒 ／ 51.9 秒</text>
+<text class="t1" x="16" y="429.0">n = 4（f = 1）｜3 個離線（超過 f）</text>
+<rect class="cell h0" x="261.0" y="410.0" width="140" height="30" rx="4"><title>n = 4，3 個離線，無遺失：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="331.0" y="429.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="401.0" y="410.0" width="140" height="30" rx="4"><title>n = 4，3 個離線，遺失 10%，不重送：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="471.0" y="429.0" text-anchor="middle">0%</text>
+<rect class="cell h0" x="541.0" y="410.0" width="140" height="30" rx="4"><title>n = 4，3 個離線，遺失 10%，重送 2 次：離線那一小時的 240 個時槽中有 0 個提交了區塊；期間提交 0 次</title></rect><text class="cv hv0" x="611.0" y="429.0" text-anchor="middle">0%</text>
+<text class="t2" x="697.0" y="429.0">— ／ — ／ —</text>
+<text class="t2" x="915.0" y="429.0">51.7 秒 ／ 100.0 秒 ／ 51.9 秒</text>
+<text class="tm small" x="261" y="468" text-anchor="end" dx="-8">0%</text>
+<rect class="sw h0" x="261" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h1" x="283" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h2" x="305" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h3" x="327" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h4" x="349" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h5" x="371" y="456" width="22" height="16" rx="3"/>
+<rect class="sw h6" x="393" y="456" width="22" height="16" rx="3"/>
+<text class="tm small" x="423" y="468">100%</text>
+<text class="t2 small" x="463" y="468">時槽的比例</text>
+</svg>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 661 602" width="661" height="602" role="img" aria-labelledby="t d">
+<style>svg.viz{--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--grid:#e1e0d9;--axis:#c3c2b7;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;font-family:system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif}@media (prefers-color-scheme: dark){svg.viz{--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--grid:#2c2c2a;--axis:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;}}.bg{fill:var(--surface)}.t1{fill:var(--ink)}.t2{fill:var(--ink2)}.tm{fill:var(--muted)}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1}.ref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;fill:none}.line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.dash{stroke-dasharray:6 4}.mk{stroke:var(--surface);stroke-width:2}.hollow{fill:var(--surface);stroke-width:2}.hit{fill:transparent;pointer-events:all}.hit:hover+.mk,.mk:hover{stroke:var(--ink)}.l1{stroke:var(--s1)}.f1{fill:var(--s1)}.b1{fill:var(--s1);fill-opacity:.14}.l2{stroke:var(--s2)}.f2{fill:var(--s2)}.b2{fill:var(--s2);fill-opacity:.14}.l3{stroke:var(--s3)}.f3{fill:var(--s3)}.b3{fill:var(--s3);fill-opacity:.14}.l4{stroke:var(--s4)}.f4{fill:var(--s4)}.b4{fill:var(--s4);fill-opacity:.14}text{font-size:12px}.title{font-size:15px;font-weight:600}.ptitle{font-size:13px;font-weight:600}.small{font-size:11px}</style>
+<style>svg.viz{--h0:#f0efec;--h1:#cde2fb;--h2:#9ec5f4;--h3:#6da7ec;--h4:#3987e5;--h5:#256abf;--h6:#184f95;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--ink);--hv5:var(--surface);--hv6:var(--surface);}@media (prefers-color-scheme: dark){svg.viz{--h0:#2c2c2a;--h1:#104281;--h2:#184f95;--h3:#256abf;--h4:#3987e5;--h5:#6da7ec;--h6:#9ec5f4;--hv0:var(--ink);--hv1:var(--ink);--hv2:var(--ink);--hv3:var(--ink);--hv4:var(--surface);--hv5:var(--surface);--hv6:var(--surface);}}.h0{fill:var(--h0)}.hv0{fill:var(--hv0)}.h1{fill:var(--h1)}.hv1{fill:var(--hv1)}.h2{fill:var(--h2)}.hv2{fill:var(--hv2)}.h3{fill:var(--h3)}.hv3{fill:var(--hv3)}.h4{fill:var(--h4)}.hv4{fill:var(--hv4)}.h5{fill:var(--h5)}.hv5{fill:var(--hv5)}.h6{fill:var(--h6)}.hv6{fill:var(--hv6)}.cell{stroke:var(--surface);stroke-width:2}.cell:hover{stroke:var(--ink)}.cv{pointer-events:none;font-weight:600}.sw{stroke:var(--surface);stroke-width:2}</style>
+<title id="t">exp3 分區、延遲與干擾：安全不變，活性看有沒有 Q 個連得上</title><desc id="d">各種分區、延遲和干擾下，有區塊提交的時槽比例、提交延遲、平均輪數，以及干擾時的理論值</desc>
+<rect class="bg" width="661" height="602"/>
+<text class="t1 title" x="16" y="26">exp3 分區、延遲與干擾：安全不變，活性看有沒有 Q 個連得上</text>
+<text class="t2" x="16" y="46">7 個驗證者（Q = 5），36 個 5 分鐘時槽；分區在第 6 到 18 個時槽（一小時）；每列 20 次</text>
+<text class="t2" x="16" y="64">分區、切換：只看分區那一小時；延遲、干擾：全程。任何情況都沒有兩個區塊在同一高度被提交</text>
+<text class="t1 ptitle" x="184.0" y="94" text-anchor="middle">時槽的比例</text>
+<line class="axis" x1="140" x2="228" y1="99" y2="99"/>
+<text class="t2" x="184.0" y="114" text-anchor="middle">有區塊的時槽</text>
+<text class="t2" x="248.0" y="114" text-anchor="start">提交延遲 p95</text>
+<text class="t2" x="351.0" y="114" text-anchor="start">平均輪數</text>
+<text class="t2" x="427.0" y="114" text-anchor="start">說明</text>
+<text class="t1" x="16" y="143.0">沒有故障</text>
+<rect class="cell h6" x="136.0" y="124.0" width="96" height="30" rx="4"><title>沒有故障：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="143.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="143.0">0.2 秒</text>
+<text class="t2" x="351.0" y="143.0">0.00</text>
+<text class="t2" x="427.0" y="143.0"></text>
+<text class="t1" x="16" y="183.0">分成 5｜2</text>
+<rect class="cell h6" x="136.0" y="164.0" width="96" height="30" rx="4"><title>分成 5｜2：分區那一小時的 240 個時槽中有 240 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="183.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="183.0">11.7 秒</text>
+<text class="t2" x="351.0" y="183.0">0.25</text>
+<text class="t2" x="427.0" y="183.0"></text>
+<text class="t1" x="16" y="213.0">分成 6｜1</text>
+<rect class="cell h6" x="136.0" y="194.0" width="96" height="30" rx="4"><title>分成 6｜1：分區那一小時的 240 個時槽中有 240 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="213.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="213.0">5.2 秒</text>
+<text class="t2" x="351.0" y="213.0">0.08</text>
+<text class="t2" x="427.0" y="213.0"></text>
+<text class="t1" x="16" y="243.0">分成 4｜3</text>
+<rect class="cell h0" x="136.0" y="224.0" width="96" height="30" rx="4"><title>分成 4｜3：分區那一小時的 240 個時槽中有 0 個提交了區塊</title></rect><text class="cv hv0" x="184.0" y="243.0" text-anchor="middle">0%</text>
+<text class="t2" x="248.0" y="243.0">61 分鐘</text>
+<text class="t2" x="351.0" y="243.0">67.00</text>
+<text class="t2" x="427.0" y="243.0">分區結束後 51.7 秒 恢復提交</text>
+<text class="t1" x="16" y="273.0">分成 3｜2｜2</text>
+<rect class="cell h0" x="136.0" y="254.0" width="96" height="30" rx="4"><title>分成 3｜2｜2：分區那一小時的 240 個時槽中有 0 個提交了區塊</title></rect><text class="cv hv0" x="184.0" y="273.0" text-anchor="middle">0%</text>
+<text class="t2" x="248.0" y="273.0">61 分鐘</text>
+<text class="t2" x="351.0" y="273.0">67.00</text>
+<text class="t2" x="427.0" y="273.0">分區結束後 51.7 秒 恢復提交</text>
+<text class="t1" x="16" y="303.0">4｜3 每分鐘切換</text>
+<rect class="cell h6" x="136.0" y="284.0" width="96" height="30" rx="4"><title>4｜3 每分鐘切換：分區那一小時的 240 個時槽中有 240 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="303.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="303.0">66.7 秒</text>
+<text class="t2" x="351.0" y="303.0">3.50</text>
+<text class="t2" x="427.0" y="303.0"></text>
+<text class="t1" x="16" y="343.0">延遲 0.5～1 秒</text>
+<rect class="cell h6" x="136.0" y="324.0" width="96" height="30" rx="4"><title>延遲 0.5～1 秒：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="343.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="343.0">2.3 秒</text>
+<text class="t2" x="351.0" y="343.0">0.00</text>
+<text class="t2" x="427.0" y="343.0"></text>
+<text class="t1" x="16" y="373.0">延遲 1～2 秒</text>
+<rect class="cell h6" x="136.0" y="354.0" width="96" height="30" rx="4"><title>延遲 1～2 秒：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="373.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="373.0">4.6 秒</text>
+<text class="t2" x="351.0" y="373.0">0.00</text>
+<text class="t2" x="427.0" y="373.0"></text>
+<text class="t1" x="16" y="403.0">延遲 2～4 秒</text>
+<rect class="cell h6" x="136.0" y="384.0" width="96" height="30" rx="4"><title>延遲 2～4 秒：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="403.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="403.0">28.8 秒</text>
+<text class="t2" x="351.0" y="403.0">2.71</text>
+<text class="t2" x="427.0" y="403.0"></text>
+<text class="t1" x="16" y="433.0">延遲 4～8 秒</text>
+<rect class="cell h6" x="136.0" y="414.0" width="96" height="30" rx="4"><title>延遲 4～8 秒：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="433.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="433.0">135.3 秒</text>
+<text class="t2" x="351.0" y="433.0">8.99</text>
+<text class="t2" x="427.0" y="433.0"></text>
+<text class="t1" x="16" y="473.0">干擾 5%</text>
+<rect class="cell h6" x="136.0" y="454.0" width="96" height="30" rx="4"><title>干擾 5%：全程的 720 個時槽中有 720 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="473.0" text-anchor="middle">100%</text>
+<text class="t2" x="248.0" y="473.0">5.2 秒</text>
+<text class="t2" x="351.0" y="473.0">0.07</text>
+<text class="t2" x="427.0" y="473.0">理論：至少 5 個連得上的時間 99.6%</text>
+<text class="t1" x="16" y="503.0">干擾 10%</text>
+<rect class="cell h6" x="136.0" y="484.0" width="96" height="30" rx="4"><title>干擾 10%：全程的 720 個時槽中有 713 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="503.0" text-anchor="middle">99%</text>
+<text class="t2" x="248.0" y="503.0">5.3 秒</text>
+<text class="t2" x="351.0" y="503.0">0.47</text>
+<text class="t2" x="427.0" y="503.0">理論：至少 5 個連得上的時間 97.4%</text>
+<text class="t1" x="16" y="533.0">干擾 20%</text>
+<rect class="cell h6" x="136.0" y="514.0" width="96" height="30" rx="4"><title>干擾 20%：全程的 720 個時槽中有 683 個提交了區塊</title></rect><text class="cv hv6" x="184.0" y="533.0" text-anchor="middle">95%</text>
+<text class="t2" x="248.0" y="533.0">159.3 秒</text>
+<text class="t2" x="351.0" y="533.0">1.50</text>
+<text class="t2" x="427.0" y="533.0">理論：至少 5 個連得上的時間 85.2%</text>
+<text class="tm small" x="136" y="572" text-anchor="end" dx="-8">0%</text>
+<rect class="sw h0" x="136" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h1" x="158" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h2" x="180" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h3" x="202" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h4" x="224" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h5" x="246" y="560" width="22" height="16" rx="3"/>
+<rect class="sw h6" x="268" y="560" width="22" height="16" rx="3"/>
+<text class="tm small" x="298" y="572">100%</text>
+<text class="t2 small" x="338" y="572">時槽的比例</text>
+</svg>

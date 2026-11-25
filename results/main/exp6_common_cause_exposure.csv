@@ -1,0 +1,11 @@
+arch,role,role_label,nodes,states_seen,commands_seen,measurements,uniform,reads_island,read_surface
+A,centre,調度中心（值班）,1,4,4,True,True,True,2
+A,backup,備援中心,1,4,0,False,True,True,2
+A,substation,變電所,4,1,1,False,True,False,2
+B,centre,調度中心（值班）,1,4,4,True,True,True,2
+B,backup,備援中心,1,4,0,False,True,True,2
+B,substation,變電所,4,1,1,False,True,False,2
+C,validator,驗證者,7,4,4,True,True,True,11
+C,substation,變電所,4,4,4,True,True,True,11
+D,validator,驗證者（7 個組織）,7,4,4,True,True,True,11
+D,substation,變電所,4,4,4,True,True,True,11

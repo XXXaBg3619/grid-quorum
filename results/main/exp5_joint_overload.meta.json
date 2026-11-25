@@ -1,0 +1,116 @@
+{
+  "git_commit": "cb617d1",
+  "experiment": "exp5_joint_overload",
+  "step": "docs/DESIGN.md section 7, step 4",
+  "seeds": 5,
+  "runs_per_seed": 4,
+  "config": {
+    "arch": "D",
+    "n_validators": 7,
+    "round_timeout_s": 3.0,
+    "vote_timeout_s": 1.0,
+    "timeout_delta_s": 0.5,
+    "net_delay_s": 0.05,
+    "net_jitter_s": 0.05,
+    "link_loss_p": 0.0,
+    "link_loss_model": "iid",
+    "link_outage_mean_s": 600.0,
+    "link_retries": 0,
+    "link_retry_gap_s": 1.0,
+    "dispatch_period_s": 300.0,
+    "horizon_h": 24.0,
+    "chain_id": "island-1",
+    "epoch": 1,
+    "command_ttl_s": 900.0,
+    "report_inclusion_s": 60.0,
+    "start_hour": 0.0,
+    "load_noise": 0.03,
+    "supply_profile": [
+      [
+        0.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.45
+      ],
+      [
+        14.0,
+        0.45
+      ],
+      [
+        20.0,
+        0.6
+      ]
+    ],
+    "supply_jitter_h": 1.0,
+    "cold_load_multiplier": 2.0,
+    "cold_load_decay_s": 1800.0,
+    "ufls_margin": 0.05,
+    "ufls_delay_s": 2.0,
+    "blackstart_s": 3600.0,
+    "balance_check_s": 60.0,
+    "reserve_margin": 0.05,
+    "min_dwell_s": 1800.0,
+    "heartbeat_s": 30.0,
+    "failover_s": 90.0,
+    "local_max_switch": 2,
+    "fallback_after_s": 900.0,
+    "plan_supply_share": 0.4,
+    "runs": 30,
+    "seed": 0,
+    "f": 2,
+    "quorum": 5
+  },
+  "attack_starts_after_strike_s": 600.0,
+  "modes": {
+    "restore_all": "全部復電",
+    "cut_critical": "切掉關鍵饋線",
+    "starve": "讓 S4 一直停電"
+  },
+  "starved_substation": "S4",
+  "attackers": {
+    "A": {
+      "arch": "A",
+      "label": "A：駭入調度中心（1 個節點）",
+      "compromised_validators": null
+    },
+    "B": {
+      "arch": "B",
+      "label": "B：駭入調度中心（1 個節點）",
+      "compromised_validators": null
+    },
+    "C1": {
+      "arch": "C",
+      "label": "C、D：1 個驗證者",
+      "compromised_validators": 1
+    },
+    "C2": {
+      "arch": "C",
+      "label": "C、D：2 個驗證者（f）",
+      "compromised_validators": 2
+    },
+    "C4": {
+      "arch": "C",
+      "label": "C、D：4 個驗證者（超過 f、少於 Q）",
+      "compromised_validators": 4
+    },
+    "C5": {
+      "arch": "C",
+      "label": "C、D：5 個驗證者（Q）",
+      "compromised_validators": 5
+    }
+  },
+  "pass_rule": "restore_all: A and B trip UFLS after the strike in every run; cut_critical: A loses critical load in every run, B never does and refuses commands; starve: A and B give S4 less power than without the attack in every run; C, D with b <= 4: no attack command executed, no attack block committed, decisions as without the attack; C, D with b = 5: forged commands executed",
+  "all_passed": true,
+  "known_issues": [
+    "C stands for D: the same code; how likely b compromised validators are is experiment 6",
+    "the compromised validators otherwise run the protocol honestly; from f + 1 = 3 on they could also stall it by not voting (experiments 1 and 2)",
+    "with Q keys the attacker's chain captures the substations: they refuse the committee's blocks from then on (stale_seq, header_mismatch), so recovering needs a new validator set (epoch change: future work), not just the attacker leaving",
+    "B's local rule sees one substation: restoring every feeder stays within cfg.local_max_switch per period because most substations have few feeders off at a time; a rule that knew the island's supply would need the global state, which is what C and D bring"
+  ]
+}

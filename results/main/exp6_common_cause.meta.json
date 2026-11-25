@@ -1,0 +1,102 @@
+{
+  "git_commit": "cb617d1",
+  "experiment": "exp6_common_cause (boundary)",
+  "step": "docs/DESIGN.md section 7, step 4",
+  "seeds": 3,
+  "island": {
+    "horizon_h": 2.0,
+    "supply_jitter_h": 0.0,
+    "supply_profile": [
+      [
+        0.0,
+        0.45
+      ],
+      [
+        24.0,
+        0.45
+      ]
+    ]
+  },
+  "attack_start_s": 1800.0,
+  "assumptions": {
+    "strong_node": 0.02,
+    "weak_node_base": 0.1,
+    "taipower_common_base": 0.05,
+    "software": 0.01,
+    "software_levels_checked": [
+      0.005,
+      0.01,
+      0.02
+    ],
+    "weak_orgs": [
+      "city_emergency",
+      "hospital",
+      "water_utility",
+      "fire_department"
+    ],
+    "implementations": [
+      [
+        "v0",
+        "v1",
+        "v2",
+        "v3"
+      ],
+      [
+        "v4",
+        "v5",
+        "v6"
+      ]
+    ],
+    "period": "one period of war, say a year; the numbers are assumptions that show trends"
+  },
+  "checks": {
+    "thresholds": true,
+    "a_b_no_failover_or_table_under_freeze": true,
+    "keys_same_in_every_run": true,
+    "exposure_same_in_every_seed": true,
+    "exposure": true,
+    "monte_carlo_matches_closed_form": true,
+    "rises_with_taipower_risk": true,
+    "falls_with_more_weak_orgs": true,
+    "rises_from_read_to_forge": true,
+    "software_risk_cancels": true
+  },
+  "all_passed": true,
+  "p_org_grid": [
+    0.0,
+    0.005,
+    0.01,
+    0.015,
+    0.02,
+    0.03,
+    0.04,
+    0.05,
+    0.06,
+    0.08,
+    0.1,
+    0.125,
+    0.15,
+    0.175,
+    0.2,
+    0.25,
+    0.3
+  ],
+  "n_weak": [
+    2,
+    4,
+    6
+  ],
+  "boundary_checks": {
+    "rises_with_taipower_risk": true,
+    "falls_with_more_weak_orgs": true,
+    "rises_from_read_to_forge": true,
+    "software_risk_cancels": true,
+    "software_max_difference": 0.0
+  },
+  "pass_rule": "the boundary does not depend on the shared software risk (it hits C and D alike), rises with Taipower's common risk, falls with more weak organisations, rises from read to stall to forge",
+  "known_issues": [
+    "the risks are assumptions; only their relations (common versus independent, strong versus weak) carry over to a real deployment",
+    "break_even_weak = p_strong where C and D are equal with weak = strong (Taipower's common risk 0): D is never the safer design there",
+    "events are independent: a campaign against several weak organisations at once (correlated breaches) would raise D's risks; so would a shared supplier or shared staff between organisations"
+  ]
+}

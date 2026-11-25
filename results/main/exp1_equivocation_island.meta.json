@@ -1,0 +1,88 @@
+{
+  "git_commit": "cb617d1",
+  "experiment": "exp1_equivocation",
+  "part": "island",
+  "step": "docs/DESIGN.md section 7, step 4",
+  "seeds": 5,
+  "runs_per_seed": 4,
+  "config": {
+    "arch": "C",
+    "n_validators": 7,
+    "round_timeout_s": 3.0,
+    "vote_timeout_s": 1.0,
+    "timeout_delta_s": 0.5,
+    "net_delay_s": 0.05,
+    "net_jitter_s": 0.05,
+    "link_loss_p": 0.0,
+    "link_loss_model": "iid",
+    "link_outage_mean_s": 600.0,
+    "link_retries": 0,
+    "link_retry_gap_s": 1.0,
+    "dispatch_period_s": 300.0,
+    "horizon_h": 24.0,
+    "chain_id": "island-1",
+    "epoch": 1,
+    "command_ttl_s": 900.0,
+    "report_inclusion_s": 60.0,
+    "start_hour": 0.0,
+    "load_noise": 0.03,
+    "supply_profile": [
+      [
+        0.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.45
+      ],
+      [
+        14.0,
+        0.45
+      ],
+      [
+        20.0,
+        0.6
+      ]
+    ],
+    "supply_jitter_h": 1.0,
+    "cold_load_multiplier": 2.0,
+    "cold_load_decay_s": 1800.0,
+    "ufls_margin": 0.05,
+    "ufls_delay_s": 2.0,
+    "blackstart_s": 3600.0,
+    "balance_check_s": 60.0,
+    "reserve_margin": 0.05,
+    "min_dwell_s": 1800.0,
+    "heartbeat_s": 30.0,
+    "failover_s": 90.0,
+    "local_max_switch": 2,
+    "fallback_after_s": 900.0,
+    "plan_supply_share": 0.4,
+    "runs": 30,
+    "seed": 0,
+    "f": 2,
+    "quorum": 5
+  },
+  "compromised": "v{7-b} .. v6",
+  "rules": {
+    "rule": {
+      "label": "有「報告必收」規則",
+      "report_inclusion_s": 60.0
+    },
+    "no_rule": {
+      "label": "沒有這條規則",
+      "report_inclusion_s": "inf"
+    }
+  },
+  "pass_rule": "b <= 2: no conflicting commits, every honest validator commits every height; with the rule also no attacker block committed and no run worse than the same run without attack (UFLS after the strike, collapses, critical feeders); b = 2 without the rule: attacker blocks committed",
+  "all_passed": true,
+  "known_issues": [
+    "the attacker's second block is the one without the fresh state reports, the only other block the honest validators accept; with the rule it is refused whenever it leaves out a report the honest validators have held for 60 s, which here is always. A report less than 60 s old (a feeder change just before a slot) may still be left out: one slot later it is old enough",
+    "beyond f (b = 3) the rule happens to stop this attacker as well, because a block's content follows from inputs every honest validator holds; that is not a guarantee: the protocol promises nothing beyond f",
+    "C only: D runs exactly the same code; the two differ in who runs the validators, which decides how likely b compromised validators are (experiment 6), not what they can do"
+  ]
+}

@@ -1,0 +1,9 @@
+rule,rule_label,report_inclusion_s,b,beyond_f,runs,heights,conflict_heights,fork_runs,undecided_honest_heights,split_rounds,attacker_commits,attacker_commit_share,double_signers,caught,false_accusations,extra_rounds_per_run,latency_p95_s,runs_worse_than_honest,availability,availability_ci95,fresh_after,ufls_events_after,ufls_events_after_ci95,ufls_slots_after,collapses,critical_served_share,served_share,served_share_ci95,passed
+rule,有「報告必收」規則,60.0,0,False,20,5760,0,0,0,0,0,,0,0,0,0.0,0.234,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+rule,有「報告必收」規則,60.0,1,False,20,5760,0,0,0,223,0,0.0,20,0,0,11.15,5.202,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+rule,有「報告必收」規則,60.0,2,False,20,5760,0,0,0,711,0,0.0,40,0,0,35.55,11.707,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+rule,有「報告必收」規則,60.0,3,True,20,5760,0,0,0,679,0,0.0,60,60,0,0.0,0.265,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+no_rule,沒有這條規則,inf,0,False,20,5760,0,0,0,0,0,,0,0,0,0.0,0.234,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+no_rule,沒有這條規則,inf,1,False,20,5760,0,0,0,223,0,0.0,20,0,0,11.15,5.202,0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.4916,0.0015,True
+no_rule,沒有這條規則,inf,2,False,20,5760,0,0,0,955,702,0.7351,40,40,0,0.0,4.08,20,1.0,0.0,1.0,5.5,1.1475,0.0219,0.0,1.0,0.49,0.0018,True
+no_rule,沒有這條規則,inf,3,True,20,5760,20,20,4883,1312,214,0.1631,60,0,0,134.05,26.588,15,0.8071,0.1186,0.7814,3.4,3.3376,0.0133,0.0,1.0,0.497,0.011,True

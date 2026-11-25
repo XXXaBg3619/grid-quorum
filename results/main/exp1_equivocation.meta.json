@@ -1,0 +1,87 @@
+{
+  "git_commit": "cb617d1",
+  "experiment": "exp1_equivocation",
+  "part": "consensus",
+  "step": "docs/DESIGN.md section 7, step 4",
+  "seeds": 5,
+  "runs_per_seed": 4,
+  "heights_per_run": 50,
+  "config": {
+    "arch": "D",
+    "n_validators": 7,
+    "round_timeout_s": 3.0,
+    "vote_timeout_s": 1.0,
+    "timeout_delta_s": 0.5,
+    "net_delay_s": 0.05,
+    "net_jitter_s": 0.05,
+    "link_loss_p": 0.0,
+    "link_loss_model": "iid",
+    "link_outage_mean_s": 600.0,
+    "link_retries": 0,
+    "link_retry_gap_s": 1.0,
+    "dispatch_period_s": 3600.0,
+    "horizon_h": 24.0,
+    "chain_id": "island-1",
+    "epoch": 1,
+    "command_ttl_s": 900.0,
+    "report_inclusion_s": 60.0,
+    "start_hour": 0.0,
+    "load_noise": 0.03,
+    "supply_profile": [
+      [
+        0.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.7
+      ],
+      [
+        3.0,
+        0.45
+      ],
+      [
+        14.0,
+        0.45
+      ],
+      [
+        20.0,
+        0.6
+      ]
+    ],
+    "supply_jitter_h": 1.0,
+    "cold_load_multiplier": 2.0,
+    "cold_load_decay_s": 1800.0,
+    "ufls_margin": 0.05,
+    "ufls_delay_s": 2.0,
+    "blackstart_s": 3600.0,
+    "balance_check_s": 60.0,
+    "reserve_margin": 0.05,
+    "min_dwell_s": 1800.0,
+    "heartbeat_s": 30.0,
+    "failover_s": 90.0,
+    "local_max_switch": 2,
+    "fallback_after_s": 900.0,
+    "plan_supply_share": 0.4,
+    "runs": 30,
+    "seed": 0,
+    "f": 2,
+    "quorum": 5
+  },
+  "committee_sizes": [
+    4,
+    7
+  ],
+  "loss_p": [
+    0.0,
+    0.1
+  ],
+  "compromised": "the last b validators (v{n-b} .. v{n-1})",
+  "pass_rule": "b <= f: no conflicting honest commits and every honest validator commits every height; conflicting proofs share >= f + 1 signers, all compromised when from the same round; no honest validator accused; b = f + 1 at p = 0: conflicts happen",
+  "all_passed": true,
+  "known_issues": [
+    "votes are sent once, not gossiped: a double signer is caught only when one honest validator sees both of its votes, in practice when a commit proof reaches the other half by catch-up. When the split makes the round fail without any commit (n = 7, b = 1: neither half reaches Q), nobody sees both votes; CometBFT's vote gossip would show them (column caught)",
+    "beyond f, the attacker keeps splitting after a fork: the honest half whose chain the compromised validators did not follow can never reach Q again (undecided heights); that is the expected loss of liveness beyond f, not a bug",
+    "conflicting proofs from different rounds share >= f + 1 signers, but naming the culprits then needs the votes of the rounds in between (locking), not just the two proofs"
+  ]
+}
