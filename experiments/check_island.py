@@ -53,7 +53,7 @@ from gridq.events import EventKind
 from gridq.faults import Offline
 from gridq.hashing import canonical_hash
 from gridq.loads import Loads, default_island
-from gridq.metrics import island_metrics, mean_ci95
+from gridq.metrics import AFTER_S, after_event, island_metrics, mean_ci95
 from gridq.power import supply_scenario
 from gridq.sim import Simulator
 from gridq.svgchart import chart, matrix
@@ -75,31 +75,6 @@ SCENARIOS = (        # key, label, short label, supply profile (None: the defaul
     ("two_sites", "失去兩個站點，供電 45%（高於備案假設的 40%）", "失去兩站", None, TWO),
     ("two_sites_deep", "失去兩個站點，供電只剩 25%（問題 22）", "兩站＋25%", flat_after_strike(DEEP_SHARE), TWO),
 )
-AFTER_S = 60.0       # UFLS later than this after the strike is not the strike's own trip
-
-
-def strike_time(supply) -> float:
-    """The first instant drop of G(t): two points at one time, the second lower."""
-    for (t0, v0), (t1, v1) in zip(supply.points, supply.points[1:]):
-        if t0 == t1 and v1 < v0:
-            return t0
-    raise ValueError("the supply scenario has no strike")
-
-
-def after_strike(log, cfg, strike: float, n_subs: int) -> dict:
-    """UFLS and fresh decisions after the strike's dispatch slot."""
-    period, n = cfg.dispatch_period_s, cfg.n_dispatches
-    k0 = int(strike // period)
-    later = range(k0 + 1, n)
-    ufls_t = sorted({e.t for e in log.of_kind(EventKind.UFLS_TRIP) if e.t > strike + AFTER_S})
-    ufls_slots = {int(t // period) for t in ufls_t}
-    fresh = {(e.data.get("substation"), e.data.get("slot")) for e in log.of_kind(EventKind.DECISION_APPLIED)
-             if type(e.data.get("slot")) is int and e.data["slot"] > k0 and e.t < (e.data["slot"] + 1) * period}
-    return {"ufls_events_after": len(ufls_t),
-            "ufls_slots_after": round(len(ufls_slots & set(later)) / len(later), 6) if later else 0.0,
-            "fresh_after": round(len(fresh) / (n_subs * len(later)), 6) if later else 1.0}
-
-
 def job(args):
     """One island event in one scenario (or sweep point: key "sweep" and a supply share), all four architectures."""
     seed, run, key, share = args
@@ -111,13 +86,13 @@ def job(args):
     specs = default_island()
     peak = Loads(base, specs, run).peak_kw()
     supply = supply_scenario(base, peak, run)
-    strike = strike_time(supply)
+    strike = supply.strike()
     out = []
     for arch, _ in ARCHES:
         cfg = base.with_(arch=arch)
         sim = Simulator(cfg, Offline(lost, start=strike) if lost else None, run, specs=specs, supply=supply).run()
         m = island_metrics(sim.log)
-        m.update(after_strike(sim.log, cfg, strike, len(sim.link.subs)))
+        m.update(after_event(sim.log, cfg, strike, len(sim.link.subs)))
         m["decisions"] = canonical_hash([[e.data["expires"], e.data["substation"], e.data["feeder"], e.data["target"]]
                                          for e in sim.log.of_kind(EventKind.COMMAND_ISSUED)])
         out.append(dict(scenario=key, share=share, arch=arch, seed=seed, run=run, strike_h=round(strike / 3600.0, 3),

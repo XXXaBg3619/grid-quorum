@@ -41,8 +41,9 @@ class TestSkeleton(unittest.TestCase):
         self.assertTrue(f.node_up(None, "v0", 0.0))
         self.assertEqual(f.central_commands(None, "centre", 0, ["c"]), ["c"])
         self.assertEqual(f.compromised(None), set())
+        self.assertIsInstance(faults.build("equivocate", bad=["v1"]), faults.Equivocate)
         with self.assertRaises(ValueError):
-            faults.build("equivocate")
+            faults.build("meteor")
 
     def test_reject_reasons_are_unique(self):
         self.assertEqual(len(set(REJECT_REASONS)), len(REJECT_REASONS))

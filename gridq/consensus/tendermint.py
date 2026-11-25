@@ -22,13 +22,22 @@ they arrive (network.py):
              CometBFT those prevotes are gossiped. Without them a node that
              missed them could never accept the value, while locked nodes never
              accept another one, so one unlucky round could stall a height.
+  votes      each signed (voter, value) counts once toward its value, so a
+             proof of lock or any Q signatures count in full at every node,
+             even one that a double signer sent another vote first (CometBFT
+             keeps such conflicting votes once a peer claims a majority for
+             them). Within f no two values reach Q in one round.
   bodies     a node prevotes or precommits a block only if it got the proposal
              (CometBFT precommits nil on a polka for a block it lacks), but a
              precommit carries its block, standing in for CometBFT's block-part
              gossip, so any node that counts Q precommits can commit.
   catch-up   a node that hears a message for a height it already decided
              answers with its blocks and commit proofs from that height on,
-             once per peer, height and round (CometBFT's block sync).
+             once per peer, height and round (CometBFT's block sync). The
+             receiver counts the proof's precommits as votes it heard, so a
+             validator that precommitted another block to it in that round is
+             caught double-signing (EVIDENCE), as CometBFT's vote gossip
+             would catch it.
   slots      block h records the dispatch slot k it was proposed in; height
              h + 1 starts when slot k + 1 starts, or at once if consensus ran
              past it. A block is valid if chain id, epoch, height, prev hash and
@@ -93,8 +102,8 @@ class Validator:
         self.valid_round = -1
         self.proposals: Dict[int, Tuple[object, str, int]] = {}   # round -> (block, id, valid_round)
         self.bodies: Dict[str, dict] = {}                        # id -> every block seen at this height
-        self.prevotes: Dict[int, Dict[str, tuple]] = defaultdict(dict)    # round -> voter -> (id | None, sig)
-        self.precommits: Dict[int, Dict[str, tuple]] = defaultdict(dict)
+        self.prevotes: Dict[int, Dict[str, dict]] = defaultdict(dict)     # round -> voter -> {id | None: sig}
+        self.precommits: Dict[int, Dict[str, dict]] = defaultdict(dict)
         self.tally: Dict[tuple, Counter] = defaultdict(Counter)  # (kind, round) -> id | None -> votes
         self.ready: List[Tuple[int, str]] = []                   # (round, id) with Q precommits
         self.heard: Dict[int, set] = defaultdict(set)            # round -> validators heard in it
@@ -110,8 +119,11 @@ class Validator:
     def last_slot(self) -> int:
         return self.chain[-1]["slot"] if self.chain else -1
 
-    def is_valid(self, block) -> bool:
-        """Header fits this node's chain and clock, and the application check accepts it."""
+    def is_valid(self, block, prevote: bool = False) -> bool:
+        """Header fits this node's chain and clock, and the application check accepts it.
+        prevote: also the node's own check before it prevotes for a new proposal (prevote_fn),
+        which may depend on what this node has seen; a re-proposal with its proof of lock,
+        locking and committing do not use it, so it can cost a round but never stall a height."""
         if not isinstance(block, dict):
             return False
         c, slot = self.cfg, block.get("slot")
@@ -119,7 +131,9 @@ class Validator:
                 or block.get("height") != self.height or block.get("prev") != self.last_hash
                 or not isinstance(slot, int) or not self.last_slot < slot <= self.com.slot_of(self.com.kernel.now)):
             return False
-        return self.com.valid_fn is None or bool(self.com.valid_fn(self, block))
+        if self.com.valid_fn is not None and not self.com.valid_fn(self, block):
+            return False
+        return not prevote or self.com.prevote_fn is None or bool(self.com.prevote_fn(self, block))
 
     # ---------- rounds and steps ----------
     def start_height(self, height: int, t: float) -> None:
@@ -132,7 +146,7 @@ class Validator:
         if self.com.proposer(self.height, r) == self.name:
             if self.valid is not None:
                 (block, bid), vr = self.valid, self.valid_round
-                pol = {v: s for v, (b, s) in self.prevotes[vr].items() if b == bid}
+                pol = {v: sigs[bid] for v, sigs in self.prevotes[vr].items() if bid in sigs}
             else:
                 block, vr, pol = self._new_block(r, t), -1, None
             self.com.send_proposal(self, block, vr, pol, t)
@@ -221,18 +235,24 @@ class Validator:
         self.add_vote(kind, msg["round"], msg["sender"], bid, msg["sig"])
 
     def add_vote(self, kind: str, r: int, voter: str, bid: Optional[str], sig: str) -> None:
-        """Record a verified vote; the first one per voter and round counts, a different
-        second one is evidence of double signing."""
-        votes = (self.prevotes if kind == PREVOTE else self.precommits)[r]
-        old = votes.get(voter)
-        if old is None:
-            votes[voter] = (bid, sig)
-            c = self.tally[(kind, r)]
-            c[bid] += 1
-            if kind == PRECOMMIT and bid is not None and c[bid] == self.com.q:
-                self.ready.append((r, bid))
-        elif old[0] != bid:
-            self._evidence(voter, kind, r, old[0], bid)
+        """Record a verified vote. Each signed (voter, value) counts once toward that value,
+        so Q signatures for one block always count as Q, even if some signer sent this node
+        another vote in that round (as CometBFT's vote set tracks conflicting votes once a
+        peer claims a majority for them): otherwise a node that heard a double signer's
+        other vote first could never accept a proof of lock, and a height could stall with
+        honest nodes locked on different blocks. Within f this is safe: two blocks with Q
+        signatures each in one round need f + 1 double signers. A second, different vote
+        of one voter in one round is also evidence of double signing."""
+        votes = (self.prevotes if kind == PREVOTE else self.precommits)[r].setdefault(voter, {})
+        if bid in votes:
+            return
+        if votes:
+            self._evidence(voter, kind, r, next(iter(votes)), bid)
+        votes[bid] = sig
+        c = self.tally[(kind, r)]
+        c[bid] += 1
+        if kind == PRECOMMIT and bid is not None and c[bid] == self.com.q:
+            self.ready.append((r, bid))
 
     def _evidence(self, offender: str, kind: str, r: int, a, b) -> None:
         if (offender, kind, r) not in self.reported:
@@ -251,6 +271,10 @@ class Validator:
                 continue
             if verify_commit(self.com.keys, self.cfg, block, proof) or not self.is_valid(block):
                 return
+            digest = vote_digest(self.cfg, PRECOMMIT, h, proof["round"], proof["block"])
+            for voter, sig in sorted(proof["sigs"].items()):   # the proof's precommits count as heard,
+                if voter in self.com.nodes and self.com.keys.verify(voter, digest, sig):   # so a double vote shows
+                    self.add_vote(PRECOMMIT, proof["round"], voter, proof["block"], sig)
             self._decide(block, proof, "sync", t)
 
     # ---------- the upon-rules ----------
@@ -278,11 +302,11 @@ class Validator:
             block, bid, vr = prop
             locked_bid = self.locked[1] if self.locked else None
             if vr == -1:
-                ok = self.is_valid(block) and (self.locked_round == -1 or locked_bid == bid)
+                ok = self.is_valid(block, prevote=True) and (self.locked_round == -1 or locked_bid == bid)
                 self._vote(PREVOTE, bid if ok else None, t)
                 return True
             if 0 <= vr < R and self._count(PREVOTE, vr, bid) >= q:
-                ok = self.is_valid(block) and (self.locked_round <= vr or locked_bid == bid)
+                ok = self.is_valid(block) and (self.locked_round <= vr or locked_bid == bid)   # Q already prevoted it
                 self._vote(PREVOTE, bid if ok else None, t)
                 return True
         if prop is not None and self.step != PROPOSE and R not in self.polka_done:
@@ -304,7 +328,7 @@ class Validator:
         for r, bid in self.ready:
             body = self.bodies.get(bid)
             if body is not None and self.is_valid(body):
-                sigs = {v: s for v, (b, s) in self.precommits[r].items() if b == bid}
+                sigs = {v: s[bid] for v, s in self.precommits[r].items() if bid in s}
                 self._decide(body, make_proof(self.height, r, bid, sigs), "votes", t)
                 return True
         return False
@@ -331,14 +355,19 @@ class Committee:
     """n validators, the network between them, and what they decided.
 
     propose_fn(node, height, round, t) -> payload    the block content (default {})
-    valid_fn(node, block) -> bool                    application validity (default: accept)
+    valid_fn(node, block) -> bool                    application validity (default: accept); the
+                                                     same answer at every node and any time
+    prevote_fn(node, block) -> bool                  the node's own extra check before it prevotes
+                                                     for a proposal (default: none); may differ
+                                                     between nodes, so it never blocks a commit
     on_decide(node, header, proof, t)                called at every node's commit
     """
 
     def __init__(self, cfg, kernel: Kernel, net: Network, *, keys: Optional[KeyRing] = None,
                  log: Optional[EventLog] = None, fault: Optional[Fault] = None, sim=None,
                  names: Optional[Sequence[str]] = None, propose_fn: Optional[Callable] = None,
-                 valid_fn: Optional[Callable] = None, on_decide: Optional[Callable] = None):
+                 valid_fn: Optional[Callable] = None, on_decide: Optional[Callable] = None,
+                 prevote_fn: Optional[Callable] = None):
         self.cfg, self.kernel, self.net = cfg, kernel, net
         self.names = list(names) if names is not None else [f"v{i}" for i in range(cfg.n_validators)]
         if len(self.names) != cfg.n_validators or len(set(self.names)) != len(self.names):
@@ -348,6 +377,7 @@ class Committee:
         self.fault = fault if fault is not None else Honest()
         self.sim = sim if sim is not None else self
         self.propose_fn, self.valid_fn, self.on_decide = propose_fn, valid_fn, on_decide
+        self.prevote_fn = prevote_fn
         self.q = cfg.quorum
         self.weak = cfg.n_validators // 3 + 1          # more than n/3: at least one honest node
         self.n_slots = cfg.n_dispatches                 # no height starts in a later slot

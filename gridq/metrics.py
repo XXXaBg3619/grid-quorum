@@ -14,24 +14,29 @@ The island metrics need the loads, which the log does not list: they are
 rebuilt from run_meta (config, run, island table, load scale), as the keyed
 random draws make them reproducible.
 
-Still to come (design doc, section 下一步：實作範圍與順序):
-  conflicting_commits   two different blocks committed at one height (safety)
-  commit_latency_s      proposal to commit (C, D); issue to execution at the
-                        substation (all architectures)
-  break_difficulty      P(more than f validators compromised), C vs D (theory.py)
-  data_exposure         sensitive data one compromised node can read
+After an event (the strike, a fault starting): UFLS and fresh decisions
+(after_event); while a fault lasts: decisions, switching by cause and the
+time to the first decision after it (window_metrics).
+
+Experiment 6: data_exposure, what each node received during a run with
+faults.Observe (sensitive data one compromised node can read, design doc
+question 29); break_difficulty, the chance that an attacker holds enough
+decision nodes to read, stall or forge, from the run's node-to-organisation
+map (run_meta["arch"]["orgs"]) and assumed risks under theory.py's
+common-cause model (C against D, question 19).
 """
 from __future__ import annotations
 
 import bisect
 import math
 import statistics
-from collections import Counter
-from typing import Dict, Iterable, List, Mapping, Tuple
+from collections import Counter, defaultdict
+from typing import Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .config import GridConfig
 from .events import EventKind
 from .loads import Loads, specs_from_meta
+from .theory import compromise_prob_events
 
 
 def jain(xs: Iterable[float]) -> float:
@@ -156,6 +161,57 @@ def on_intervals(timeline: List[Tuple[float, str]], end: float) -> List[Tuple[fl
     return out
 
 
+AFTER_S = 60.0       # UFLS later than this after an event (the strike) is not the event's own trip
+
+
+def after_event(log, cfg, t0: float, n_subs: int) -> dict:
+    """UFLS and fresh decisions after the dispatch slot of an event at t0 (the strike, a fault starting).
+
+      ufls_events_after  distinct UFLS moments later than t0 + AFTER_S
+      ufls_slots_after   share of the later dispatch slots with one
+      fresh_after        share of (substation, later slot) pairs in which the
+                         substation verified a fresh decision for the slot
+                         before the slot ended (as availability)"""
+    period, n = cfg.dispatch_period_s, cfg.n_dispatches
+    k0 = int(t0 // period)
+    later = range(k0 + 1, n)
+    ufls_t = sorted({e.t for e in log.of_kind(EventKind.UFLS_TRIP) if e.t > t0 + AFTER_S})
+    ufls_slots = {int(t // period) for t in ufls_t}
+    fresh = {(e.data.get("substation"), e.data.get("slot")) for e in log.of_kind(EventKind.DECISION_APPLIED)
+             if type(e.data.get("slot")) is int and e.data["slot"] > k0 and e.t < (e.data["slot"] + 1) * period}
+    return {"ufls_events_after": len(ufls_t),
+            "ufls_slots_after": round(len(ufls_slots & set(later)) / len(later), 6) if later else 0.0,
+            "fresh_after": round(len(fresh) / (n_subs * len(later)), 6) if later else 1.0}
+
+
+def window_metrics(log, cfg, t0: float, t1: float) -> dict:
+    """What the decision path did while a fault lasted, [t0, t1), and how it came back.
+
+      decisions_in    slots decided (DECISION) in the window: by a centre (A, B)
+                      or a committee commit (C, D)
+      applied_in      fresh decisions substations verified in the window
+      switched_in     feeder switches in the window, by cause ("command",
+                      "table", "ufls"): a substation that holds switches only
+                      by local protection
+      resume_s        from t1 to the first fresh decision a substation verified
+                      after it ("" if none, or the window never ends)
+      decision_p95_s  95th percentile of decision time minus slot start, over
+                      the decisions made outside the window"""
+    period = cfg.dispatch_period_s
+    inside = lambda t: t0 <= t < t1  # noqa: E731
+    dec = list(log.of_kind(EventKind.DECISION))
+    applied = [e.t for e in log.of_kind(EventKind.DECISION_APPLIED)]
+    after = [t for t in applied if t >= t1]
+    lat = sorted(e.t - e.data["slot"] * period for e in dec if not inside(e.t) and type(e.data.get("slot")) is int)
+    out = {"decisions_in": sum(1 for e in dec if inside(e.t)), "applied_in": sum(1 for t in applied if inside(t)),
+           "resume_s": round(min(after) - t1, 3) if after and math.isfinite(t1) else "",
+           "decision_p95_s": round(lat[min(len(lat) - 1, int(0.95 * len(lat)))], 3) if lat else ""}
+    switched = Counter(e.data.get("cause") for e in log.of_kind(EventKind.FEEDER_SWITCHED) if inside(e.t))
+    for cause in ("command", "table", "ufls"):
+        out[f"switched_in:{cause}"] = switched.get(cause, 0)
+    return out
+
+
 def island_metrics(log) -> dict:
     """One island event's results, from its log (public events) and run_meta.
 
@@ -231,3 +287,55 @@ def island_metrics(log) -> dict:
     for reason, n in sorted(Counter(e.data.get("reason") for e in log.of_kind(EventKind.COMMAND_REJECTED)).items()):
         out[f"rejected:{reason}"] = n
     return out
+
+
+# ---------- experiment 6 ----------
+def data_exposure(log) -> Dict[str, dict]:
+    """What each node received during a run with faults.Observe: the substations whose feeder
+    states and whose commands reached it, and whether it saw the island's measurements."""
+    out: Dict[str, dict] = {}
+    for e in log.of_kind(EventKind.FAULT_ACTION):
+        d = e.data
+        if d.get("action") != "observed":
+            continue
+        r = out.setdefault(d["node"], {"states": set(), "commands": set(), "measurements": False})
+        if d["what"] == "measurements":
+            r["measurements"] = True
+        else:
+            r[d["what"]].add(d["substation"])
+    return {n: {"states": sorted(r["states"]), "commands": sorted(r["commands"]), "measurements": r["measurements"]}
+            for n, r in sorted(out.items())}
+
+
+def risk_model(orgs: Mapping[str, str], node_risk: Mapping[str, float],
+               org_risk: Optional[Mapping[str, float]] = None,
+               software: Sequence[Tuple[float, Optional[Iterable[str]]]] = ()) -> Tuple[List[str], list, List[float]]:
+    """The common-cause model for one architecture's decision nodes: (nodes, events, node risks) for
+    theory.compromise_prob_events and theory.sample_compromised, nodes sorted by name.
+
+      orgs       decision node -> organisation (run_meta["arch"]["orgs"])
+      node_risk  organisation -> the chance that one of its nodes falls on its own
+      org_risk   organisation -> the chance that its shared accounts, staff or network fall, taking
+                 every node it runs at once; used for organisations with two or more nodes (with
+                 one node it is the node risk)
+      software   (probability, nodes or None for all) per software implementation: a zero-day takes
+                 every node that runs it"""
+    nodes = sorted(orgs)
+    idx = {v: i for i, v in enumerate(nodes)}
+    members = defaultdict(list)
+    for v in nodes:
+        members[orgs[v]].append(idx[v])
+    events = [(p, [idx[v] for v in (vs if vs is not None else nodes)]) for p, vs in software]
+    events += [(float((org_risk or {}).get(o, 0.0)), m) for o, m in sorted(members.items())
+               if len(m) >= 2 and (org_risk or {}).get(o, 0.0) > 0.0]
+    return nodes, events, [float(node_risk[orgs[v]]) for v in nodes]
+
+
+def break_difficulty(orgs: Mapping[str, str], thresholds: Mapping[str, int], node_risk: Mapping[str, float],
+                     org_risk: Optional[Mapping[str, float]] = None,
+                     software: Sequence[Tuple[float, Optional[Iterable[str]]]] = ()) -> Dict[str, float]:
+    """P(an attacker holds at least k decision nodes in one period) for each named threshold, e.g.
+    {"read": 1, "stall": f + 1, "forge": Q} for C and D (experiment 6 measures them); the other
+    arguments as in risk_model."""
+    _, events, p_nodes = risk_model(orgs, node_risk, org_risk, software)
+    return {name: compromise_prob_events(k, events, p_nodes) for name, k in thresholds.items()}

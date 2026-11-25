@@ -2,14 +2,16 @@
 # Rerun every experiment on one shared baseline (structure from evsim's
 # run_c3.sh, BlokcChin@796b43c), so the report quotes one set of reference values.
 #
-#   bash experiments/run_all.sh [outdir]
-#   QUICK=1 SEEDS=2 RUNS=3 bash experiments/run_all.sh    # smoke test
+#   bash experiments/run_all.sh [outdir]           # every script's own seeds and runs, as in results/main
+#   QUICK=1 bash experiments/run_all.sh /tmp/smoke  # smoke test
+#   SEEDS=10 RUNS=8 bash experiments/run_all.sh     # the same seeds and runs for every experiment
 set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT=${1:-results/main}
-SEEDS=${SEEDS:-20}
-RUNS=${RUNS:-30}
-C=(--seeds "$SEEDS" --runs "$RUNS")
+C=()
+if [[ -n "${QUICK:-}" ]]; then C+=(--quick); fi
+if [[ -n "${SEEDS:-}" ]]; then C+=(--seeds "$SEEDS"); fi
+if [[ -n "${RUNS:-}" ]]; then C+=(--runs "$RUNS"); fi
 run() { echo; echo "### $*"; local t=$SECONDS; python3 "$@"; echo "### took $((SECONDS - t)) s"; }
 
 python3 -m unittest discover -s tests -q
@@ -25,7 +27,7 @@ run experiments/check_island.py ${QUICK:+--quick} --out "$OUT/check_island"
 for exp in exp1_equivocation exp2_offline exp3_partition exp4_replay exp5_joint_overload exp6_common_cause; do
   if [[ -f "experiments/$exp.py" ]]; then
     mkdir -p "$OUT"
-    run "experiments/$exp.py" "${C[@]}" --out "$OUT/$exp"
+    run "experiments/$exp.py" ${C[@]+"${C[@]}"} --out "$OUT/$exp"
   else
     echo "skip $exp (not written yet)"
   fi

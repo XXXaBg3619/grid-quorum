@@ -8,6 +8,11 @@ Every experiment script has the same shape:
   * <out>.csv, one row per cell, plus <out>.meta.json with the settings, the
     git commit and the known issues, so every number in the report can be
     traced back to the run that produced it.
+
+A machine that stops long commands can run the grid in pieces: --shard I/N
+runs jobs I, I + N, I + 2N, ... and saves their raw results next to <out>;
+the same command with --merge N instead puts the N pieces together and writes
+the results, identical to one run without --shard (run_grid).
 """
 from __future__ import annotations
 
@@ -15,6 +20,7 @@ import argparse
 import csv
 import json
 import os
+import pickle
 import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor
@@ -33,6 +39,9 @@ def common_args(ap: Optional[argparse.ArgumentParser] = None, seeds: int = 10,
     ap.add_argument("--runs", type=int, default=runs, help="island events per seed")
     ap.add_argument("--workers", type=int, default=os.cpu_count() or 1)
     ap.add_argument("--out", default=None, help="output path without extension")
+    ap.add_argument("--shard", default=None, metavar="I/N",
+                    help="run only jobs I, I+N, ... and save their raw results; then the same command with --merge N")
+    ap.add_argument("--merge", type=int, default=None, metavar="N", help="put N saved shards together instead of running")
     return ap
 
 
@@ -48,6 +57,46 @@ def run_jobs(fn: Callable, jobs: Iterable, workers: int = 1) -> List:
         return [fn(j) for j in jobs]
     with ProcessPoolExecutor(max_workers=workers) as ex:
         return list(ex.map(fn, jobs))
+
+
+def shard_path(out: str, i: int, n: int) -> str:
+    return f"{out}.shard{i}of{n}.pkl"
+
+
+def run_grid(fn: Callable, jobs: Iterable, a, out: str) -> Optional[List]:
+    """run_jobs over all jobs; or with --shard I/N only jobs[I::N], saved for a later
+    --merge N (returns None); or with --merge N the saved shards, checked against
+    the jobs these arguments give. Results come back in job order either way."""
+    jobs = list(jobs)
+    if a.shard and a.merge:
+        raise SystemExit("--shard and --merge exclude each other")
+    if a.shard:
+        i, n = (int(x) for x in a.shard.split("/"))
+        if not 0 <= i < n:
+            raise SystemExit(f"--shard I/N needs 0 <= I < N, got {a.shard}")
+        mine = jobs[i::n]
+        part = {"jobs": mine, "results": run_jobs(fn, mine, a.workers)}
+        os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+        with open(shard_path(out, i, n), "wb") as fh:
+            pickle.dump(part, fh)
+        print("wrote", shard_path(out, i, n), f"({len(mine)} of {len(jobs)} jobs)")
+        return None
+    if a.merge:
+        results: List = [None] * len(jobs)
+        for i in range(a.merge):
+            with open(shard_path(out, i, a.merge), "rb") as fh:
+                part = pickle.load(fh)
+            if part["jobs"] != jobs[i::a.merge]:
+                raise SystemExit(f"shard {i} of {a.merge} was run with other arguments")
+            results[i::a.merge] = part["results"]
+        return results
+    return run_jobs(fn, jobs, a.workers)
+
+
+def drop_shards(out: str, a) -> None:
+    """After a --merge wrote the results: remove the shard files."""
+    for i in range(a.merge or 0):
+        os.remove(shard_path(out, i, a.merge))
 
 
 def git_commit() -> str:

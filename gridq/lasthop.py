@@ -27,6 +27,8 @@ without the power model, for the tests and experiment 4.
 """
 from __future__ import annotations
 
+import bisect
+import math
 import random
 from collections import Counter, defaultdict
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, Union
@@ -68,6 +70,14 @@ class ChainDispatch:
                 block's slot + cfg.command_ttl_s
     valid() recomputes the commands, so a block is valid only if they are
     exactly what the rules give for the agreed state (the global check).
+
+    A proposer may still leave a fresh report out: the block is then valid for
+    the older state. includes_reports() is every validator's own check before it
+    prevotes (Committee prevote_fn): a new proposal must carry, for every
+    substation, a report at least as new as the newest one this validator got
+    cfg.report_inclusion_s before the block's slot started (floor_of, set by
+    LastHop). Without it, a compromised proposer can get decisions for a stale
+    state committed (experiment 1).
     """
     EXTRA: Tuple[str, ...] = ()
     FULL_REPORTS = False        # reports must carry policy.decide's bookkeeping (substation.valid_report)
@@ -79,6 +89,7 @@ class ChainDispatch:
         self.reports_of = reports_of if reports_of is not None else (lambda node: {})
         self._seen: Dict[str, tuple] = {}          # node -> (chain length, view, commands per substation)
         self._checked: Dict[str, tuple] = {}       # node -> (chain length, {id(block): (block, valid)})
+        self.floor_of: Optional[Callable[[str, float], Mapping[str, int]]] = None   # (validator, time) -> versions
 
     # ---------- what a subclass defines ----------
     def start_state(self) -> Dict[str, dict]:
@@ -142,6 +153,19 @@ class ChainDispatch:
         if hit is None or hit[0] is not block:
             hit = seen[id(block)] = (block, self._valid(node, block))
         return hit[1]
+
+    def includes_reports(self, node, block) -> bool:
+        """Committee prevote_fn: no substation's state that this validator has known for a while is left out."""
+        if self.floor_of is None or not math.isfinite(self.cfg.report_inclusion_s):
+            return True
+        payload = block.get("payload") if isinstance(block, dict) else None
+        if not isinstance(payload, dict):
+            return False
+        view, _ = self.chain_state(node)
+        have = {r.get("substation"): r.get("version") for r in payload.get("reports") or () if isinstance(r, dict)}
+        cutoff = block["slot"] * self.cfg.dispatch_period_s - self.cfg.report_inclusion_s
+        return all(max(have.get(s, -1), view[s]["version"]) >= v
+                   for s, v in self.floor_of(node.name, cutoff).items() if s in view)
 
     def _valid(self, node, block) -> bool:
         payload = block.get("payload")
@@ -259,12 +283,14 @@ class LastHop(Link):
         checks = frozenset(checks)
         self.sub_keys = KeyRing(sorted(feeders), cfg.seed)       # substations' own keys, apart from validators'
         self.reports: Dict[str, Dict[str, dict]] = defaultdict(dict)   # validator -> substation -> newest report
+        self.report_log: Dict[str, Dict[str, List[Tuple[float, int]]]] = defaultdict(lambda: defaultdict(list))
         reports_of = lambda v: self.reports[v]  # noqa: E731
         self.dispatch = (dispatch(self.sub_keys, reports_of) if dispatch is not None else
                          RotatingDispatch(cfg, feeders, self.sub_keys, groups, reports_of=reports_of))
+        self.dispatch.floor_of = self.report_floor
         self.com = Committee(cfg, kernel, net, keys=keys, log=self.log, fault=self.fault, sim=self,
                              propose_fn=self.dispatch.propose, valid_fn=self.dispatch.valid,
-                             on_decide=self.forward)
+                             on_decide=self.forward, prevote_fn=self.dispatch.includes_reports)
         if set(feeders) & set(self.com.names):
             raise ValueError("substation and validator names must differ")
         offsets = clock_offset_s if isinstance(clock_offset_s, Mapping) else {s: clock_offset_s for s in feeders}
@@ -321,6 +347,7 @@ class LastHop(Link):
             cur = self.reports[dst].get(r.get("substation")) if isinstance(r, dict) else None
             if self.dispatch.authentic(r) and (cur is None or r["version"] > cur["version"]):
                 self.reports[dst][r["substation"]] = r
+                self.report_log[dst][r["substation"]].append((t, r["version"]))
         elif msg.get("type") == "sync_request":
             self._answer_sync(dst, msg, t)
 
@@ -344,6 +371,15 @@ class LastHop(Link):
         self.stats["sync_replies"] += 1
         reply = {"type": "sync", "entries": entries, "sender": validator, "delivery": f"sync:{s}:{k}:{validator}"}
         self.to_substation(validator, s, reply, f"sync:{s}:{k}:{validator}", t)
+
+    def report_floor(self, validator: str, cutoff: float) -> Dict[str, int]:
+        """Per substation, the newest report version `validator` had received by time `cutoff`."""
+        out = {}
+        for s, entries in self.report_log[validator].items():
+            i = bisect.bisect_right(entries, (cutoff, math.inf))
+            if i:
+                out[s] = entries[i - 1][1]
+        return out
 
     # ---------- results ----------
     def initial_states(self) -> Dict[str, Dict[str, str]]:

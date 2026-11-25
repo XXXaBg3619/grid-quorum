@@ -3,7 +3,6 @@ section 7 (round 0 against theory under iid loss, no conflicting commits), plus
 offline validators, partitions, equivocation, locking and catch-up."""
 import math
 import os
-import random
 import sys
 import unittest
 
@@ -11,64 +10,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from gridq.chain import verify_chain  # noqa: E402
 from gridq.config import GridConfig  # noqa: E402
-from gridq.consensus import PREVOTE, block_id, run_committee, verify_commit, vote_digest  # noqa: E402
+from gridq.consensus import PRECOMMIT, PREVOTE, block_id, run_committee, verify_commit, vote_digest  # noqa: E402
 from gridq.events import EventKind  # noqa: E402
-from gridq.faults import Fault  # noqa: E402
+from gridq.faults import Equivocate, Offline  # noqa: E402
 from gridq.network import Network  # noqa: E402
 from gridq.theory import commit_latency_bound, round_outcome, round_success_prob  # noqa: E402
 
 V = [f"v{i}" for i in range(7)]
 SLOW_SLOTS = 3600.0       # dispatch slot long enough that no height runs into the next one
-
-
-class Down(Fault):
-    """These validators are down (send and receive nothing) during [start, end)."""
-    label = "down-test"
-
-    def __init__(self, nodes, start=0.0, end=math.inf):
-        super().__init__(1.0)
-        self.nodes, self.start, self.end = set(nodes), start, end
-
-    def node_up(self, sim, node, t):
-        return not (node in self.nodes and self.start <= t < self.end)
-
-
-class Equivocate(Fault):
-    """Compromised validators double-sign (the seed of experiment 1): as proposer they
-    send block A to one group and block B to the other, and as voters in such a round
-    they vote A to the first group and B to the second."""
-    label = "equivocate-test"
-
-    def __init__(self, bad, groups=None, seed=0):
-        super().__init__(1.0)
-        self.bad, self.groups, self.seed = set(bad), groups, seed
-        self.pairs = {}
-
-    def compromised(self, sim):
-        return set(self.bad)
-
-    def _split(self, height, rnd, recipients):
-        if self.groups:
-            return self.groups
-        honest = [r for r in recipients if r not in self.bad]
-        random.Random(f"split-{self.seed}-{height}-{rnd}").shuffle(honest)
-        k = len(honest) // 2
-        return set(honest[:k]) | self.bad, set(honest[k:])
-
-    def proposal(self, sim, node, height, rnd, block, recipients):
-        if node not in self.bad:
-            return super().proposal(sim, node, height, rnd, block, recipients)
-        g1, g2 = self._split(height, rnd, recipients)
-        other = dict(block, payload={"forged": rnd})
-        self.pairs[(height, rnd)] = (block_id(block), block_id(other))
-        return {r: (block if r in g1 else other) for r in recipients if r in g1 | g2}
-
-    def vote(self, sim, node, kind, height, rnd, value, recipients):
-        pair = self.pairs.get((height, rnd))
-        if node not in self.bad or pair is None:
-            return super().vote(sim, node, kind, height, rnd, value, recipients)
-        g1, g2 = self._split(height, rnd, recipients)
-        return {r: (pair[0] if r in g1 else pair[1]) for r in recipients if r in g1 | g2}
 
 
 class DropNet(Network):
@@ -199,7 +148,7 @@ class TestOffline(unittest.TestCase):
     def test_f_down_keeps_committing_within_the_latency_bound(self):
         cfg = GridConfig()
         down = {"v5", "v6"}
-        com = run_committee(cfg, fault=Down(down), heights=14)
+        com = run_committee(cfg, fault=Offline(down), heights=14)
         up = [n for n in com.names if n not in down]
         self.assertEqual(com.undecided_heights(up), [])
         same_chains(self, com, up)
@@ -216,12 +165,12 @@ class TestOffline(unittest.TestCase):
         self.assertEqual(silent_counts, {0, 1, 2})
 
     def test_more_than_f_down_commits_nothing(self):
-        com = run_committee(GridConfig(), fault=Down({"v4", "v5", "v6"}), heights=4)
+        com = run_committee(GridConfig(), fault=Offline({"v4", "v5", "v6"}), heights=4)
         self.assertEqual(dict(com.decisions), {})
         self.assertTrue(list(com.log.of_kind(EventKind.ROUND_TIMEOUT)))
 
     def test_node_back_from_an_outage_catches_up(self):
-        com = run_committee(GridConfig(), fault=Down({"v3"}, 650.0, 2150.0), heights=10)
+        com = run_committee(GridConfig(), fault=Offline({"v3"}, 650.0, 2150.0), heights=10)
         v3 = com.nodes["v3"]
         self.assertEqual(len(v3.chain), 10)
         same_chains(self, com)
@@ -251,13 +200,38 @@ class TestPartition(unittest.TestCase):
 
 class TestByzantine(unittest.TestCase):
     def test_equivocation_by_f_validators_never_commits_two_blocks(self):
-        for seed, p in [(1, 0.0), (2, 0.1), (3, 0.2)]:
-            com = run_committee(GridConfig(link_loss_p=p, seed=seed), fault=Equivocate({"v1", "v4"}, seed=seed),
-                                heights=20, drain_s=3600.0)
+        # the last case stalled height 12 for ever before a proof of lock counted in full (add_vote)
+        for seed, p, bad in [(1, 0.0, {"v1", "v4"}), (2, 0.1, {"v1", "v4"}), (3, 0.2, {"v1", "v4"}),
+                             (0, 0.1, {"v5", "v6"})]:
+            cfg = GridConfig(link_loss_p=p, seed=seed, dispatch_period_s=SLOW_SLOTS)
+            com = run_committee(cfg, fault=Equivocate(bad), heights=12, drain_s=SLOW_SLOTS)
             self.assertEqual(com.conflicting_heights(), [], (seed, p))
             self.assertEqual(com.undecided_heights(com.honest()), [], (seed, p))
             same_chains(self, com, com.honest())
             self.assertTrue(list(com.log.of_kind(EventKind.FAULT_ACTION)))
+
+    def test_q_signatures_count_in_full_after_a_conflicting_vote(self):
+        com = run_committee(GridConfig(), heights=1)
+        v0 = com.nodes["v0"]
+        v0.add_vote(PREVOTE, 9, "v5", "a" * 64, "sig")         # the double signer's other vote, heard first
+        for voter in ("v1", "v2", "v3", "v4", "v5"):            # then a proof of lock for block b
+            v0.add_vote(PREVOTE, 9, voter, "b" * 64, "sig")
+        self.assertEqual((v0._count(PREVOTE, 9, "b" * 64), v0._count(PREVOTE, 9, "a" * 64)), (5, 1))
+        ev = [e.data["offender"] for e in com.log.of_kind(EventKind.EVIDENCE) if e.data["round"] == 9]
+        self.assertEqual(ev, ["v5"])
+
+    def test_a_commit_proof_from_catch_up_exposes_the_double_signers(self):
+        # Height 1, proposer v1: the compromised v1 and v2 send block A and their votes for it to
+        # {v0, v3, v4}, which commit A; v5 and v6 get block B and votes for B, so they see no quorum
+        # and learn A only from a commit proof (catch-up). That proof holds v1's and v2's
+        # precommits for A, which contradict the ones they sent v5 and v6.
+        bad = {"v1", "v2"}
+        com = run_committee(GridConfig(), fault=Equivocate(bad, groups=({"v0", "v3", "v4"} | bad, {"v5", "v6"})),
+                            heights=1)
+        self.assertEqual({com.decisions[1][n]["via"] for n in ("v5", "v6")}, {"sync"})
+        ev = {(e.actor.split(":")[1], e.data["offender"], e.data["kind"]) for e in com.log.of_kind(EventKind.EVIDENCE)}
+        self.assertLessEqual({(v, o, PRECOMMIT) for v in ("v5", "v6") for o in bad}, ev)
+        self.assertEqual({o for _, o, _ in ev}, bad)
 
     def test_equivocation_by_more_than_f_can_commit_two_blocks(self):
         bad = {"v0", "v1", "v2"}                                # v1 proposes height 1

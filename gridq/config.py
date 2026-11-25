@@ -54,6 +54,8 @@ class GridConfig:
     chain_id: str = "island-1"
     epoch: int = 1                   # the validator set is fixed (epoch changes are future work)
     command_ttl_s: float = 900.0     # secondary freshness check; sequence numbers and state versions come first
+    report_inclusion_s: float = 60.0     # C, D: an honest validator prevotes nil on a block that leaves out a
+                                        # substation report it has held this long before the slot (inf: no rule)
 
     # --- Island power model (power.py, loads.py) ---
     start_hour: float = 0.0          # local time of day at t = 0
@@ -99,6 +101,8 @@ class GridConfig:
             raise ValueError("supply_profile needs points sorted by hour, the first at hour 0")
         if not 0.0 <= self.reserve_margin < 1.0 or self.cold_load_multiplier < 1.0:
             raise ValueError("reserve_margin must be in [0, 1) and cold_load_multiplier at least 1")
+        if not self.report_inclusion_s >= 0.0:
+            raise ValueError("report_inclusion_s must be at least 0 (math.inf: no inclusion rule)")
 
     # ---- derived ----
     @property

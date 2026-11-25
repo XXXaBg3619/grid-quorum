@@ -115,6 +115,7 @@ def chart(panels: List[dict], *, title: str, subtitle: str = "", legend: Sequenc
     mt = 44 + 18 * len(sub_lines) + 22 * legend_rows + (26 if has_ptitle else 8)
     mb = 50
     width = ml + mr + len(panels) * panel_w + (len(panels) - 1) * gap
+    width = max(width, int(ml + 16 + max([text_width(title, 15)] + [text_width(s) for s in sub_lines])) + 1)
     height = mt + plot_h + mb
     pw = panel_w
 
@@ -280,14 +281,15 @@ def matrix(row_labels: Sequence[str], col_labels: Sequence[str], values: Sequenc
            tips: Optional[Sequence[Sequence[str]]] = None,
            text_cols: Sequence[Tuple[str, Sequence[str]]] = (), breaks: Sequence[int] = (),
            value_fmt: Callable[[float], str] = lambda v: f"{v * 100:.0f}%",
-           legend_label: str = "", desc: str = "") -> str:
+           legend_label: str = "", desc: str = "", ramp: bool = True) -> str:
     """Return an SVG heat table.
 
     values[i][j] in [0, 1] for row i, column j, or None for a cell with nothing
     to measure (drawn as a dash on the empty colour); tips: tooltip per cell
     (default row, column and value). Headers may hold line breaks. text_cols: (header,
     one string per row), drawn after the heat columns in plain ink. breaks: a
-    gap is left after these row indices."""
+    gap is left after these row indices. ramp=False leaves out the 0-100 % legend
+    (for yes/no tables whose cells say it in words)."""
     n_r, n_c = len(row_labels), len(col_labels)
     sub_lines = subtitle.split("\n") if subtitle else []
     heads = [c.split("\n") for c in col_labels] + [h.split("\n") for h, _ in text_cols]
@@ -303,7 +305,8 @@ def matrix(row_labels: Sequence[str], col_labels: Sequence[str], values: Sequenc
     y_end = y0 + n_r * cell_h + (gaps[-1] if gaps else 0)
     x_heat = ml + label_w
     width = x_heat + n_c * cell_w + sum(text_ws) + mr
-    height = y_end + 58
+    width = max(width, int(ml + mr + max([text_width(title, 15)] + [text_width(s) for s in sub_lines])) + 1)
+    height = y_end + (58 if ramp else 20)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" class="viz" viewBox="0 0 {width} {height}" '
            f'width="{width}" height="{height}" role="img" aria-labelledby="t d">',
            _style(), _heat_style(),
@@ -342,11 +345,12 @@ def matrix(row_labels: Sequence[str], col_labels: Sequence[str], values: Sequenc
             out.append(f'<text class="t2" x="{x_text[k]:.1f}" y="{y + cell_h / 2 + 4:.1f}">{escape(vals[i])}</text>')
     ly = y_end + 24
     sw = 22
-    out.append(f'<text class="tm small" x="{x_heat}" y="{ly + 4}" text-anchor="end" dx="-8">0%</text>')
-    for b in range(7):
-        out.append(f'<rect class="sw h{b}" x="{x_heat + b * sw}" y="{ly - 8}" width="{sw}" height="16" rx="3"/>')
-    out.append(f'<text class="tm small" x="{x_heat + 7 * sw + 8}" y="{ly + 4}">100%</text>')
-    if legend_label:
-        out.append(f'<text class="t2 small" x="{x_heat + 7 * sw + 48}" y="{ly + 4}">{escape(legend_label)}</text>')
+    if ramp:
+        out.append(f'<text class="tm small" x="{x_heat}" y="{ly + 4}" text-anchor="end" dx="-8">0%</text>')
+        for b in range(7):
+            out.append(f'<rect class="sw h{b}" x="{x_heat + b * sw}" y="{ly - 8}" width="{sw}" height="16" rx="3"/>')
+        out.append(f'<text class="tm small" x="{x_heat + 7 * sw + 8}" y="{ly + 4}">100%</text>')
+        if legend_label:
+            out.append(f'<text class="t2 small" x="{x_heat + 7 * sw + 48}" y="{ly + 4}">{escape(legend_label)}</text>')
     out.append("</svg>")
     return "\n".join(out)

@@ -81,6 +81,13 @@ class Supply:
         (t0, v0), (t1, v1) = self.points[i - 1], self.points[i]
         return v0 + (v1 - v0) * (t - t0) / (t1 - t0)
 
+    def strike(self) -> float:
+        """The first instant drop of G(t) (two points at one time, the second lower): the strike."""
+        for (t0, v0), (t1, v1) in zip(self.points, self.points[1:]):
+            if t0 == t1 and v1 < v0:
+                return t0
+        raise ValueError("the supply scenario has no strike")
+
     def breakpoints(self) -> List[Tuple[float, float, Optional[Tuple[float, float]]]]:
         """(t, value from t on, (t_next, value_next) if a ramp follows) for every distinct point time."""
         out = []
