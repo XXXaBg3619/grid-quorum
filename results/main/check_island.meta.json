@@ -1,5 +1,5 @@
 {
-  "git_commit": "a20514a",
+  "git_commit": "57be211-dirty",
   "experiment": "check_island",
   "step": "docs/DESIGN.md section 7, step 3",
   "config": {
@@ -20,6 +20,7 @@
     "chain_id": "island-1",
     "epoch": 1,
     "command_ttl_s": 900.0,
+    "report_inclusion_s": 60.0,
     "start_hour": 0.0,
     "load_noise": 0.03,
     "supply_profile": [
