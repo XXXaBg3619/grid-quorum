@@ -5,3 +5,6 @@ __pycache__/
 # local input data and spreadsheets, kept out of the repo
 data/
 *.xlsx
+
+# live demo keys (python3 demo/scenario.py makes them)
+demo/keys/

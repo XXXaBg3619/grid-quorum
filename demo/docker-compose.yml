@@ -1,0 +1,168 @@
+# grid-quorum live demo: 7 validators (v0-v6), 4 substations (S1-S4) and a monitor.
+# Dashboard: http://localhost:8080 (GRIDQ_DASHBOARD_PORT to change it).
+#
+# Easiest: python3 demo/scenario.py  (makes the keys, starts everything, runs the scenarios)
+# By hand, from the repository root:
+#   docker compose -f demo/docker-compose.yml build
+#   docker compose -f demo/docker-compose.yml run --rm keygen          # once: demo/keys/
+#   GRIDQ_T0=$(date +%s) docker compose -f demo/docker-compose.yml up -d
+#   docker compose -f demo/docker-compose.yml logs -f v0 S1
+#   docker compose -f demo/docker-compose.yml down
+#
+# Each validator and substation mounts only its own private key plus everyone's public keys.
+name: gridq
+
+x-node: &node
+  build:
+    context: ..
+    dockerfile: demo/Dockerfile
+  image: gridq-live:latest
+  init: true
+  stop_grace_period: 3s
+  networks: [grid]
+
+x-env: &env
+  GRIDQ_T0: ${GRIDQ_T0:-0}            # shared start time: every node agrees on dispatch slots
+  GRIDQ_PERIOD: ${GRIDQ_PERIOD:-8}    # seconds per dispatch slot
+  TZ: ${GRIDQ_TZ:-UTC0}               # clock shown in the logs (POSIX form, e.g. UTC-8 for Taipei)
+
+services:
+  v0:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v0
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v0.key:/keys/self.key:ro
+
+  v1:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v1
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v1.key:/keys/self.key:ro
+
+  v2:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v2
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v2.key:/keys/self.key:ro
+
+  v3:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v3
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v3.key:/keys/self.key:ro
+
+  v4:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v4
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v4.key:/keys/self.key:ro
+
+  v5:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v5
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v5.key:/keys/self.key:ro
+
+  v6:
+    <<: *node
+    command: ["python", "-m", "gridq.live.validator"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: v6
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/v6.key:/keys/self.key:ro
+
+  S1:
+    <<: *node
+    hostname: s1
+    command: ["python", "-m", "gridq.live.substation"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: S1
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/S1.key:/keys/self.key:ro
+
+  S2:
+    <<: *node
+    hostname: s2
+    command: ["python", "-m", "gridq.live.substation"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: S2
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/S2.key:/keys/self.key:ro
+
+  S3:
+    <<: *node
+    hostname: s3
+    command: ["python", "-m", "gridq.live.substation"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: S3
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/S3.key:/keys/self.key:ro
+
+  S4:
+    <<: *node
+    hostname: s4
+    command: ["python", "-m", "gridq.live.substation"]
+    environment:
+      <<: *env
+      GRIDQ_NAME: S4
+    volumes:
+      - ./keys/public.json:/keys/public.json:ro
+      - ./keys/private/S4.key:/keys/self.key:ro
+
+  monitor:
+    <<: *node
+    command: ["python", "-m", "gridq.live.monitor", "serve"]
+    environment: *env
+    ports:
+      - "${GRIDQ_DASHBOARD_PORT:-8080}:8080"
+
+  # tools, run on demand: docker compose -f demo/docker-compose.yml run --rm attacker replay
+  attacker:
+    <<: *node
+    profiles: [tools]
+    entrypoint: ["python", "-m", "gridq.live.attacker"]
+    environment: *env
+    volumes:
+      - ./keys:/keys:ro
+
+  keygen:
+    <<: *node
+    profiles: [tools]
+    entrypoint: ["python", "-m", "gridq.live.keys", "--out", "/keys"]
+    volumes:
+      - ./keys:/keys
+
+networks:
+  grid: {}
